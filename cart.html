@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Carrito - TiendaBea</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Open+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body data-page="cart">
+  <nav class="navbar" id="navbar"></nav>
+  
+  <div class="container">
+    <section class="cart-section">
+      <h1 class="section-title">Carrito de Compras</h1>
+      
+      <div id="cart-items">
+        <div class="loading"><div class="spinner"></div></div>
+      </div>
+      
+      <div id="cart-summary" class="cart-summary d-none">
+        <div class="mb-2">
+          <h3>Agendar Pedido</h3>
+        </div>
+        
+        <form id="checkout-form">
+          <div class="form-group">
+            <label class="form-label" for="scheduled_date">Fecha Programada</label>
+            <input type="date" id="scheduled_date" class="form-input" required>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label" for="dni">DNI</label>
+            <input type="text" id="dni" class="form-input" placeholder="Ingrese su DNI" required>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label" for="shipping_agency">Agencia de Envío</label>
+            <select id="shipping_agency" class="form-input" required onchange="toggleOtherAgency()">
+              <option value="">Seleccione una agencia</option>
+              <option value="Shalom">Shalom</option>
+              <option value="Marvisur">Marvisur</option>
+              <option value="Flores">Flores</option>
+              <option value="Centro">Centro</option>
+              <option value="Otros">Otros</option>
+            </select>
+          </div>
+          
+          <div class="form-group" id="other_agency_group" style="display: none;">
+            <label class="form-label" for="other_agency">Especifique la Agencia</label>
+            <input type="text" id="other_agency" class="form-input" placeholder="Ingrese el nombre de la agencia">
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label" for="province">Provincia</label>
+            <input type="text" id="province" class="form-input" placeholder="Ej: Mariscal Nieto, Ilo, General Sánchez Cerro" required>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label" for="notes">Notas (opcional)</label>
+            <textarea id="notes" class="form-textarea" placeholder="Alguna instrucción especial..."></textarea>
+          </div>
+          
+          <div class="cart-total mb-2">
+            Total: <span id="cart-total">$0.00</span>
+          </div>
+          
+          <div class="cart-actions">
+            <button type="submit" class="btn btn-success">Realizar Pedido</button>
+          </div>
+        </form>
+      </div>
+      
+      <!-- Orders Section -->
+<section class="orders-section mt-3">
+  <h2 class="section-title">Mis Pedidos Recientes</h2>
+
+  <div id="cart-orders-list">
+    <div class="loading"><div class="spinner"></div></div>
+  </div>
+</section>
+</section>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+  // Set minimum date to today
+  document.getElementById('scheduled_date').min = new Date().toISOString().split('T')[0];
+
+  // Toggle other agency input
+  function toggleOtherAgency() {
+    const select = document.getElementById('shipping_agency');
+    const otherGroup = document.getElementById('other_agency_group');
+    if (select.value === 'Otros') {
+      otherGroup.style.display = 'block';
+      document.getElementById('other_agency').required = true;
+    } else {
+      otherGroup.style.display = 'none';
+      document.getElementById('other_agency').required = false;
+      document.getElementById('other_agency').value = '';
+    }
+  }
+</script>
+
+<!-- WhatsApp Modal -->
+<div class="modal" id="whatsapp-modal" style="display:none;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>¡Pedido agendado!</h2>
+      <button class="modal-close" id="whatsapp-close">&times;</button>
+    </div>
+
+    <div class="modal-body">
+      <p><strong>¡Pedido realizado exitosamente!</strong></p>
+      <p>Ahora, escríbenos por WhatsApp con tu código de pedido:</p>
+      <div class="order-code-box" id="whatsapp-order-code">ORD-XXXXXXX</div>
+
+      <div class="d-flex" style="gap:10px; margin-top:14px; flex-wrap:wrap;">
+        <button id="whatsapp-open-btn" class="btn btn-success">
+          📲 Abrir WhatsApp
+        </button>
+        <button id="whatsapp-copy-btn" class="btn btn-outline">
+          📋 Copiar código
+        </button>
+        <a href="/orders" class="btn btn-primary">
+          Ir a Mis Pedidos
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

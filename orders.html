@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mis Pedidos - TiendaBea</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Open+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body data-page="orders">
+  <nav class="navbar" id="navbar"></nav>
+  
+  <div class="container">
+    <section class="orders-section">
+      <h1 class="section-title">Mis Pedidos</h1>
+      
+      <div id="orders-list">
+        <div class="loading"><div class="spinner"></div></div>
+      </div>
+    </section>
+  </div>
+  
+  <!-- Order Detail View -->
+  <div class="container" id="order-detail-container" style="display: none;">
+    <section class="orders-section">
+      <a href="/orders" class="btn btn-secondary mb-2">← Volver a Pedidos</a>
+      <div id="order-detail"></div>
+    </section>
+  </div>
+  
+  <script src="/js/app.js"></script>
+</body>
+</html>

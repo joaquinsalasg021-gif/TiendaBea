@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TiendaBea - Tienda de Pedidos</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Open+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body data-page="home">
+  <nav class="navbar" id="navbar"></nav>
+  
+  <div class="main-layout">
+    <!-- Sidebar de Categorías -->
+    <aside class="sidebar-categories">
+      <div class="sidebar-toggle" onclick="toggleSidebar()">
+        <h3 class="sidebar-title" style="margin:0;">Categorías</h3>
+      </div>
+      <ul class="category-list" id="category-list">
+        <li class="category-item active" data-category="">
+          <span class="category-icon">📦</span>
+          <span class="category-name">Todos los Productos</span>
+        </li>
+      </ul>
+      
+      <!-- User Sidebar - shown when logged in -->
+      <div class="user-sidebar" id="user-sidebar">
+        <h3 class="sidebar-title">Mi Cuenta</h3>
+        <ul class="user-menu">
+          <li class="user-menu-item">
+            <a href="/cart" class="user-menu-link">
+              <span class="user-menu-icon">🛒</span>
+              <span>Carrito</span>
+              <span class="cart-badge" id="sidebar-cart-badge">0</span>
+            </a>
+          </li>
+          <li class="user-menu-item">
+            <a href="/orders" class="user-menu-link">
+              <span class="user-menu-icon">📋</span>
+              <span>Mis Pedidos</span>
+            </a>
+          </li>
+          <li class="user-menu-item" id="admin-menu-item" style="display: none;">
+            <a href="/admin" class="user-menu-link">
+              <span class="user-menu-icon">⚙️</span>
+              <span>Admin</span>
+            </a>
+          </li>
+          <li class="user-menu-item" id="owner-menu-item" style="display: none;">
+            <a href="/owner" class="user-menu-link">
+              <span class="user-menu-icon">👑</span>
+              <span>Owner</span>
+            </a>
+          </li>
+          <li class="user-menu-item">
+            <a href="#" class="user-menu-link logout-link" onclick="Auth.logout()">
+              <span class="user-menu-icon">🚪</span>
+              <span>Cerrar Sesión</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </aside>
+    
+    <!-- Contenido Principal -->
+    <main class="main-content">
+      <section class="products-section">
+        <h1 class="section-title">Bienvenido a TiendaBea</h1>
+        
+        <div class="mb-3">
+          <input type="text" id="search-input" class="form-input" placeholder="Buscar productos...">
+        </div>
+        
+        <div class="product-grid" id="product-grid">
+          <div class="loading"><div class="spinner"></div></div>
+        </div>
+      </section>
+    </main>
+  </div>
+  
+  <script src="/js/app.js"></script>
+  <script>
+    // Update sidebar user menu on load
+    document.addEventListener('DOMContentLoaded', () => {
+      updateSidebarUserMenu();
+    });
+    
+    function updateSidebarUserMenu() {
+      const userSidebar = document.getElementById('user-sidebar');
+      const adminItem = document.getElementById('admin-menu-item');
+      const ownerItem = document.getElementById('owner-menu-item');
+      const cartBadge = document.getElementById('sidebar-cart-badge');
+      
+      const user = localStorage.getItem('user');
+      if (user) {
+        const userData = JSON.parse(user);
+        
+        // Show user sidebar
+        userSidebar.style.display = 'block';
+        
+        // Show admin/owner menu items based on role
+        if (userData.role === 'admin' || userData.role === 'owner') {
+          adminItem.style.display = 'block';
+        }
+        
+        if (userData.role === 'owner') {
+          ownerItem.style.display = 'block';
+        }
+        
+        // Update cart badge
+        const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+        cartBadge.textContent = cart.length;
+      } else {
+        userSidebar.style.display = 'none';
+      }
+    }
+    
+    // Update cart badge when cart changes
+    window.addEventListener('storage', () => {
+      updateSidebarUserMenu();
+    });
+  </script>
+</body>
+</html>
