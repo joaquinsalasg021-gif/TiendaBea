@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Detalle del Producto - TiendaBea</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Open+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body data-page="product">
+  <nav id="navbar"></nav>
+  
+  <div class="container">
+    <section class="product-detail-section">
+      <a href="/" class="btn btn-secondary mb-2">← Volver a la tienda</a>
+      
+      <div id="loading" class="loading" style="display: none;">
+        <div class="spinner"></div>
+      </div>
+      
+      <div id="error" class="error-container" style="display: none;">
+        <p class="error"></p>
+        <a href="/" class="btn btn-secondary">Volver a la tienda</a>
+      </div>
+      
+      <div id="product-detail"></div>
+    </section>
+  </div>
+  
+  <script src="/js/navbar.js" defer></script>
+  <script src="/js/product.js" defer></script>
+</body>
+</html>
