@@ -44,6 +44,8 @@ app.get('/owner', (req, res) => res.sendFile(path.join(__dirname, 'owner.html'))
 app.get('/product', (req, res) => res.sendFile(path.join(__dirname, 'product.html')));
 app.get('/admin-orders', (req, res) => res.sendFile(path.join(__dirname, 'admin-orders.html')));
 app.get('/financial-app', (req, res) => res.sendFile(path.join(__dirname, 'financial-app.html')));
+app.get('/tiendas', (req, res) => res.sendFile(path.join(__dirname, 'tiendas.html')));
+app.get('/reclamaciones', (req, res) => res.sendFile(path.join(__dirname, 'reclamaciones.html')));
 
 // File upload configuration
 const storage = multer.diskStorage({

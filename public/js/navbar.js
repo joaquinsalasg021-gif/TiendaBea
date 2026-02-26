@@ -28,6 +28,7 @@ const Navbar = {
     if (token) {
       navLinks = `
         <a href="/" class="nav-link">Tienda</a>
+        <a href="/tiendas" class="nav-link">Tiendas</a>
         <a href="/cart" class="nav-link">Carrito <span id="cart-badge" style="display:none;">0</span></a>
       `;
       
@@ -42,6 +43,8 @@ const Navbar = {
     } else {
       navLinks = `
         <a href="/" class="nav-link">Tienda</a>
+        <a href="/tiendas" class="nav-link">Tiendas</a>
+        <a href="/reclamaciones" class="nav-link">Reclamaciones</a>
       `;
       authButtons = `
         <a href="/login" class="btn btn-sm btn-outline">Iniciar Sesión</a>
