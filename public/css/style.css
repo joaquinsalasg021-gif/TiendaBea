@@ -80,6 +80,31 @@ h1, h2, h3, h4, h5, h6 {
   gap: 1rem;
 }
 
+.navbar-social {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-right: 1rem;
+}
+
+.nav-social-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  color: white;
+  transition: all 0.3s;
+  text-decoration: none;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.nav-social-link:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
 .cart-badge {
   background-color: var(--secondary);
   color: var(--white);
@@ -1288,6 +1313,97 @@ h1, h2, h3, h4, h5, h6 {
   .carousel-container {
     height: 160px;
     margin-bottom: 1rem;
+  }
+}
+
+/* ========== STORES SECTION (Main Content) ========== */
+.stores-section {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--gray-light);
+}
+
+.section-subtitle {
+  font-size: 1.5rem;
+  color: var(--primary);
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.stores-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2rem;
+}
+
+.store-card {
+  background: var(--white);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.store-map {
+  width: 100%;
+  height: 200px;
+  background: #f0f0f0;
+}
+
+.store-map iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.store-info {
+  padding: 1.25rem;
+}
+
+.store-name {
+  font-size: 1.1rem;
+  color: var(--primary);
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+}
+
+.store-address,
+.store-schedule {
+  color: #666;
+  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
+}
+
+.store-info .btn {
+  margin-top: 1rem;
+  display: inline-block;
+  padding: 0.6rem 1.25rem;
+  background: var(--primary);
+  color: white;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.3s;
+  border: none;
+  cursor: pointer;
+}
+
+.store-info .btn:hover {
+  background: #6D28D9;
+}
+
+/* Stores responsive */
+@media (max-width: 768px) {
+  .stores-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .store-map {
+    height: 180px;
+  }
+  
+  .section-subtitle {
+    font-size: 1.3rem;
   }
 }
 
