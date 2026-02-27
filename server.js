@@ -179,8 +179,8 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    // Check if email is verified
-    if (user.email_verified === 0) {
+    // Check if email is verified (for owner and admin only)
+    if (user.email_verified === 0 && (user.role === 'owner' || user.role === 'admin')) {
       return res.status(403).json({ 
         error: 'Confirma tu correo para ingresar',
         email_verified: false,
@@ -992,14 +992,76 @@ app.post('/api/admin/create-admin', authMiddleware, requireRole('owner'), async 
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const userCode = generateUserCode();
+    
+    // Generate verification token
+    const crypto = require('crypto');
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(verificationToken).digest('hex');
+    const tokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 
     const result = db().prepare(`
-      INSERT INTO users (username, email, password, name, lastname, phone, role, user_code)
-      VALUES (?, ?, ?, ?, ?, ?, 'admin', ?)
-    `).run(username, email, hashedPassword, name, lastname, phone || null, userCode);
+      INSERT INTO users (username, email, password, name, lastname, phone, role, user_code, email_verified, email_verification_token_hash, email_verification_expires)
+      VALUES (?, ?, ?, ?, ?, ?, 'admin', ?, 0, ?, ?)
+    `).run(username, email, hashedPassword, name, lastname, phone || null, userCode, tokenHash, tokenExpires);
 
-    const user = db().prepare('SELECT id, username, email, name, lastname, role, user_code FROM users WHERE id = ?').get(result.lastInsertRowid);
-    res.status(201).json({ message: 'Admin created successfully', user });
+    // Send verification email
+    const nodemailer = require('nodemailer');
+    const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
+    const verificationUrl = `${baseUrl}/api/auth/verify-email?token=${verificationToken}`;
+    
+    try {
+      const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST || 'smtp.gmail.com',
+        port: parseInt(process.env.SMTP_PORT) || 587,
+        secure: false,
+        requireTLS: true,
+        tls: { rejectUnauthorized: false },
+        connectionTimeout: 15000,
+        auth: {
+          user: process.env.SMTP_USER || 'joaquinsalasg021@gmail.com',
+          pass: process.env.SMTP_PASS
+        }
+      });
+      
+      const mailOptions = {
+        from: process.env.FROM_EMAIL || 'TiendaBea <noreply@tiendabea.com>',
+        to: email,
+        subject: 'Verifica tu cuenta de administrador - TiendaBea',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px 10px 0 0;">
+              <h1 style="color: white; margin: 0; text-align: center;">TiendaBea</h1>
+            </div>
+            <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
+              <h2 style="color: #333; margin-top: 0;">¡Bienvenido!</h2>
+              <p style="color: #666; line-height: 1.6;">
+                Has sido creado como administrador de TiendaBea. Para acceder al panel de administración, 
+                necesitas verificar tu correo electrónico.
+              </p>
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${verificationUrl}" style="background: #667eea; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
+                  Verificar mi cuenta
+                </a>
+              </div>
+              <p style="color: #999; font-size: 12px; text-align: center;">
+                Si el botón no funciona: ${verificationUrl}
+              </p>
+              <p style="color: #999; font-size: 12px;">
+                Este enlace expira en 24 horas.
+              </p>
+            </div>
+          </div>
+        `
+      };
+      
+      await transporter.sendMail(mailOptions);
+      console.log(`Admin verification email sent to: ${email}`);
+    } catch (emailError) {
+      console.error('Error sending admin verification email:', emailError.message);
+    }
+
+    const user = db().prepare('SELECT id, username, email, name, lastname, role, user_code, email_verified FROM users WHERE id = ?').get(result.lastInsertRowid);
+    res.status(201).json({ message: 'Admin created successfully. Se envió un correo de verificación.', user });
   } catch (error) {
     console.error('Create admin error:', error);
     res.status(500).json({ error: 'Server error' });
