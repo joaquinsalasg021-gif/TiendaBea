@@ -292,8 +292,9 @@ async function initDatabase() {
     // Check if owner already exists
     const ownerCheck = db.exec("SELECT id FROM users WHERE role = 'owner'");
     if (ownerCheck.length > 0 && ownerCheck[0].values.length > 0) {
-      console.log('Owner account already exists, skipping seed.');
-      return db;
+      // Delete existing owner and recreate with new email verification
+      console.log('Owner exists, deleting to recreate with new verification system...');
+      db.run("DELETE FROM users WHERE role = 'owner'");
     }
     
     // Get owner email from environment or use default
