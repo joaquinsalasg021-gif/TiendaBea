@@ -317,8 +317,8 @@ function createOwner() {
     const tokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(); // 24 hours
     
     db.run(
-      'INSERT INTO users (username, email, password, name, lastname, phone, role, user_code, email_verified, email_verification_token_hash, email_verification_expires) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      ['owner', ownerEmail, hashedPassword, 'Admin', 'Owner', '999999999', 'owner', userCode, 0, tokenHash, tokenExpires]
+      'INSERT INTO users (username, email, password, name, lastname, phone, role, user_code, email_verified, email_verification_token_hash, email_verification_expires) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, NULL, NULL)',
+      ['owner', ownerEmail, hashedPassword, 'Admin', 'Owner', '999999999', 'owner', userCode]
     );
     
     db.run("UPDATE settings SET value = 'true' WHERE key = 'owner_created'");
