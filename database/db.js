@@ -212,9 +212,12 @@ async function initDatabase() {
   
   console.log('Sample products seeded:', sampleProducts.length);
   
-  // Create default owner account (only if not exists)
-  // NOTE: Default credentials should be changed in production!
-  // Default: username: owner, password: CHANGE_THIS_IN_PRODUCTION
+  // Create owner account
+  createOwner();
+}
+
+// Function to create owner with email verification
+function createOwner() {
   const bcrypt = require('bcryptjs');
   const { v4: uuidv4 } = require('uuid');
   const crypto = require('crypto');
@@ -419,6 +422,9 @@ function forceReseed() {
   });
   
   console.log('Force reseed complete. Categories recreated. Products NOT seeded (removed all products).');
+  
+  // Recreate owner with verification
+  createOwner();
   saveDatabase();
 }
 
