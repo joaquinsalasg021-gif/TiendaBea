@@ -14,9 +14,26 @@
     <div class="auth-card">
       <h1 class="auth-title">Iniciar Sesión</h1>
       
+      <!-- Verification success message -->
+      <div id="verification-success" class="alert alert-success" style="display: none;">
+        ✓ Tu correo ha sido verificado exitosamente. Ahora puedes iniciar sesión.
+      </div>
+      
+      <!-- Verification error message -->
+      <div id="verification-error" class="alert alert-error" style="display: none;"></div>
+      
+      <!-- Email not verified message -->
+      <div id="not-verified-alert" class="alert alert-warning" style="display: none;">
+        <p>Debes verificar tu correo electrónico antes de iniciar sesión.</p>
+        <p id="verification-email-text"></p>
+        <button type="button" id="resend-verification-btn" class="btn btn-secondary" style="margin-top: 10px;">
+          Reenviar correo de verificación
+        </button>
+      </div>
+      
       <form id="login-form">
         <div class="form-group">
-          <label class="form-label" for="username">Usuario</label>
+          <label class="form-label" for="username">Usuario o Correo</label>
           <input type="text" id="username" class="form-input" required>
         </div>
         
@@ -34,6 +51,93 @@
     </div>
   </div>
   
+  <script>
+    // Check URL params for verification status
+    const urlParams = new URLSearchParams(window.location.search);
+    const verified = urlParams.get('verified');
+    const error = urlParams.get('error');
+    
+    if (verified === '1') {
+      document.getElementById('verification-success').style.display = 'block';
+    } else if (error) {
+      const errorDiv = document.getElementById('verification-error');
+      if (error === 'invalid_token') {
+        errorDiv.textContent = 'El enlace de verificación ha expirado o es inválido.';
+      } else if (error === 'token_missing') {
+        errorDiv.textContent = 'Token de verificación faltante.';
+      } else {
+        errorDiv.textContent = 'Error al verificar el correo.';
+      }
+      errorDiv.style.display = 'block';
+    }
+    
+    // Handle login form submission
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      
+      try {
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          // Store token and redirect
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('user', JSON.stringify(data.user));
+          window.location.href = data.user.role === 'owner' ? '/owner' : 
+                                  data.user.role === 'admin' ? '/admin' : '/';
+        } else {
+          // Check if email is not verified
+          if (data.email_verified === false) {
+            document.getElementById('not-verified-alert').style.display = 'block';
+            document.getElementById('verification-email-text').textContent = 
+              'Te hemos enviado un correo a: ' + data.email;
+            document.getElementById('not-verified-alert').dataset.email = data.email;
+          } else {
+            alert(data.error || 'Error al iniciar sesión');
+          }
+        }
+      } catch (err) {
+        alert('Error de conexión');
+      }
+    });
+    
+    // Handle resend verification
+    document.getElementById('resend-verification-btn').addEventListener('click', async () => {
+      const email = document.getElementById('not-verified-alert').dataset.email;
+      const btn = document.getElementById('resend-verification-btn');
+      btn.disabled = true;
+      btn.textContent = 'Enviando...';
+      
+      try {
+        const response = await fetch('/api/auth/resend-verification', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          alert('Correo de verificación enviado. Revisa tu bandeja de entrada.');
+        } else {
+          alert(data.error || 'Error al enviar correo');
+        }
+      } catch (err) {
+        alert('Error de conexión');
+      }
+      
+      btn.disabled = false;
+      btn.textContent = 'Reenviar correo de verificación';
+    });
+  </script>
   <script src="/js/app.js"></script>
 </body>
 </html>

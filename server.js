@@ -1,4 +1,5 @@
 const express = require('express');
+require('dotenv').config();
 const cors = require('cors');
 const path = require('path');
 const bcrypt = require('bcryptjs');
@@ -167,7 +168,8 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(400).json({ error: 'Username and password required' });
     }
 
-    const user = db().prepare('SELECT * FROM users WHERE username = ? AND is_active = 1').get(username);
+    // Allow login by username or email
+    const user = db().prepare('SELECT * FROM users WHERE (username = ? OR email = ?) AND is_active = 1').get(username, username);
     if (!user) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
@@ -175,6 +177,15 @@ app.post('/api/auth/login', async (req, res) => {
     const validPassword = await bcrypt.compare(password, user.password);
     if (!validPassword) {
       return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    // Check if email is verified
+    if (user.email_verified === 0) {
+      return res.status(403).json({ 
+        error: 'Confirma tu correo para ingresar',
+        email_verified: false,
+        email: user.email
+      });
     }
 
     const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
@@ -194,6 +205,144 @@ app.get('/api/auth/me', authMiddleware, (req, res) => {
     return res.status(404).json({ error: 'User not found' });
   }
   res.json(user);
+});
+
+// Email verification endpoint
+app.get('/api/auth/verify-email', async (req, res) => {
+  try {
+    const { token } = req.query;
+    
+    if (!token) {
+      return res.redirect('/login?verified=0&error=token_missing');
+    }
+    
+    // Hash the token to compare with stored hash
+    const crypto = require('crypto');
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+    
+    // Find user with valid verification token
+    const user = db().prepare(`
+      SELECT * FROM users 
+      WHERE email_verification_token_hash = ? 
+      AND email_verification_expires > datetime('now')
+    `).get(tokenHash);
+    
+    if (!user) {
+      return res.redirect('/login?verified=0&error=invalid_token');
+    }
+    
+    // Mark email as verified and clear token
+    db().prepare(`
+      UPDATE users 
+      SET email_verified = 1, 
+          email_verification_token_hash = NULL, 
+          email_verification_expires = NULL 
+      WHERE id = ?
+    `).run(user.id);
+    
+    console.log(`Email verified for user: ${user.email}`);
+    
+    // Redirect to login with success
+    res.redirect('/login?verified=1');
+  } catch (error) {
+    console.error('Email verification error:', error);
+    res.redirect('/login?verified=0&error=server_error');
+  }
+});
+
+// Resend verification email
+app.post('/api/auth/resend-verification', async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({ error: 'Email es requerido' });
+    }
+    
+    // Find user by email
+    const user = db().prepare('SELECT * FROM users WHERE email = ?').get(email);
+    
+    if (!user) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+    
+    // If already verified
+    if (user.email_verified === 1) {
+      return res.status(400).json({ error: 'El correo ya está verificado' });
+    }
+    
+    // Generate new verification token
+    const crypto = require('crypto');
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(verificationToken).digest('hex');
+    const tokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    
+    // Update token in database
+    db().prepare(`
+      UPDATE users 
+      SET email_verification_token_hash = ?, 
+          email_verification_expires = ? 
+      WHERE id = ?
+    `).run(tokenHash, tokenExpires, user.id);
+    
+    // Send verification email
+    const nodemailer = require('nodemailer');
+    const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
+    const verificationUrl = `${baseUrl}/api/auth/verify-email?token=${verificationToken}`;
+    
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST || 'smtp.gmail.com',
+      port: parseInt(process.env.SMTP_PORT) || 587,
+      secure: process.env.SMTP_SECURE === 'true',
+      auth: {
+        user: process.env.SMTP_USER || 'joaquinsalasg021@gmail.com',
+        pass: process.env.SMTP_PASS
+      }
+    });
+    
+    const mailOptions = {
+      from: process.env.FROM_EMAIL || 'TiendaBea <noreply@tiendabea.com>',
+      to: email,
+      subject: 'Reenviar verificación de correo - TiendaBea',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px 10px 0 0;">
+            <h1 style="color: white; margin: 0; text-align: center;">TiendaBea</h1>
+          </div>
+          <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
+            <h2 style="color: #333; margin-top: 0;">Reenvío de verificación</h2>
+            <p style="color: #666; line-height: 1.6;">
+              Has solicitado reenviar el enlace de verificación de correo. 
+              Haz clic en el botón de abajo para verificar tu correo.
+            </p>
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${verificationUrl}" style="background: #667eea; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
+                Verificar mi correo
+              </a>
+            </div>
+            <p style="color: #999; font-size: 12px; text-align: center;">
+              Si el botón no funciona, copia y pega este enlace en tu navegador:<br>
+              ${verificationUrl}
+            </p>
+            <p style="color: #999; font-size: 12px;">
+              Este enlace expira en 24 horas.
+            </p>
+          </div>
+          <div style="text-align: center; padding: 20px; color: #999; font-size: 11px;">
+            <p>© ${new Date().getFullYear()} TiendaBea. Todos los derechos reservados.</p>
+          </div>
+        </div>
+      `
+    };
+    
+    await transporter.sendMail(mailOptions);
+    console.log(`Verification email resent to: ${email}`);
+    
+    res.json({ message: 'Correo de verificación enviado' });
+  } catch (error) {
+    console.error('Resend verification error:', error);
+    res.status(500).json({ error: 'Error al enviar correo de verificación' });
+  }
 });
 
 // ==================== CATEGORIES ROUTES ====================

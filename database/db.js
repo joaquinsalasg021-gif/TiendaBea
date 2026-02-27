@@ -1,4 +1,5 @@
 const initSqlJs = require('sql.js');
+require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
 
@@ -22,6 +23,24 @@ async function initDatabase() {
   
   db = new SQL.Database(data);
   
+  // Check and migrate users table for new email verification fields
+  try {
+    const userColumns = db.exec("PRAGMA table_info(users)");
+    if (userColumns.length > 0) {
+      const columnNames = userColumns[0].values.map(col => col[1]);
+      if (!columnNames.includes('email_verified')) {
+        console.log('Migrating users table: adding email_verification fields...');
+        db.run("ALTER TABLE users ADD COLUMN email_verified INTEGER DEFAULT 0");
+        db.run("ALTER TABLE users ADD COLUMN email_verification_token_hash TEXT");
+        db.run("ALTER TABLE users ADD COLUMN email_verification_expires TEXT");
+        saveDatabase();
+        console.log('Users table migration completed.');
+      }
+    }
+  } catch (e) {
+    console.log('Users table migration check:', e.message);
+  }
+
   // Check and migrate orders table if needed
   try {
     const result = db.exec("SELECT name FROM sqlite_master WHERE type='table' AND name='orders'");
@@ -54,6 +73,9 @@ async function initDatabase() {
       role TEXT DEFAULT 'user' CHECK(role IN ('user', 'admin', 'owner')),
       user_code TEXT UNIQUE,
       is_active INTEGER DEFAULT 1,
+      email_verified INTEGER DEFAULT 0,
+      email_verification_token_hash TEXT,
+      email_verification_expires TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
@@ -195,6 +217,76 @@ async function initDatabase() {
   // Default: username: owner, password: CHANGE_THIS_IN_PRODUCTION
   const bcrypt = require('bcryptjs');
   const { v4: uuidv4 } = require('uuid');
+  const crypto = require('crypto');
+  
+  // Email verification helper
+  function generateVerificationToken() {
+    return crypto.randomBytes(32).toString('hex');
+  }
+  
+  function hashToken(token) {
+    return crypto.createHash('sha256').update(token).digest('hex');
+  }
+  
+  async function sendOwnerVerificationEmail(email, token) {
+    try {
+      const nodemailer = require('nodemailer');
+      const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
+      const verificationUrl = `${baseUrl}/api/auth/verify-email?token=${token}`;
+      
+      const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST || 'smtp.gmail.com',
+        port: parseInt(process.env.SMTP_PORT) || 587,
+        secure: process.env.SMTP_SECURE === 'true',
+        auth: {
+          user: process.env.SMTP_USER || 'bea36413@gmail.com',
+          pass: process.env.SMTP_PASS
+        }
+      });
+      
+      const mailOptions = {
+        from: process.env.FROM_EMAIL || 'TiendaBea <noreply@tiendabea.com>',
+        to: email,
+        subject: 'Verifica tu correo electrónico - TiendaBea',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px 10px 0 0;">
+              <h1 style="color: white; margin: 0; text-align: center;">TiendaBea</h1>
+            </div>
+            <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
+              <h2 style="color: #333; margin-top: 0;">¡Bienvenido a TiendaBea!</h2>
+              <p style="color: #666; line-height: 1.6;">
+                Para completar tu registro y acceder a tu cuenta de Owner, 
+                necesitas verificar tu correo electrónico.
+              </p>
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${verificationUrl}" style="background: #667eea; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
+                  Verificar mi correo
+                </a>
+              </div>
+              <p style="color: #999; font-size: 12px; text-align: center;">
+                Si el botón no funciona, copia y pega este enlace en tu navegador:<br>
+                ${verificationUrl}
+              </p>
+              <p style="color: #999; font-size: 12px;">
+                Este enlace expira en 24 horas. Si no solicitaste este correo, puedes ignorarlo.
+              </p>
+            </div>
+            <div style="text-align: center; padding: 20px; color: #999; font-size: 11px;">
+              <p>© ${new Date().getFullYear()} TiendaBea. Todos los derechos reservados.</p>
+            </div>
+          </div>
+        `
+      };
+      
+      await transporter.sendMail(mailOptions);
+      console.log(`Owner verification email sent to: ${email}`);
+      return true;
+    } catch (error) {
+      console.error('Error sending owner verification email:', error.message);
+      return false;
+    }
+  }
   
   try {
     // Check if owner already exists
@@ -204,16 +296,30 @@ async function initDatabase() {
       return db;
     }
     
+    // Get owner email from environment or use default
+    const ownerEmail = process.env.OWNER_EMAIL || 'joaquinsalasg021@gmail.com';
     const hashedPassword = bcrypt.hashSync('CHANGE_THIS_IN_PRODUCTION', 10);
     const userCode = 'USR-' + uuidv4().substring(0, 8).toUpperCase();
     
+    // Generate verification token
+    const verificationToken = generateVerificationToken();
+    const tokenHash = hashToken(verificationToken);
+    const tokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(); // 24 hours
+    
     db.run(
-      'INSERT INTO users (username, email, password, name, lastname, phone, role, user_code) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      ['owner', 'owner@tiendabea.com', hashedPassword, 'Admin', 'Owner', '999999999', 'owner', userCode]
+      'INSERT INTO users (username, email, password, name, lastname, phone, role, user_code, email_verified, email_verification_token_hash, email_verification_expires) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      ['owner', ownerEmail, hashedPassword, 'Admin', 'Owner', '999999999', 'owner', userCode, 0, tokenHash, tokenExpires]
     );
     
     db.run("UPDATE settings SET value = 'true' WHERE key = 'owner_created'");
-    console.log('Default owner account created: owner / CHANGE_THIS_IN_PRODUCTION');
+    console.log('Default owner account created with email verification required.');
+    console.log('Owner email:', ownerEmail);
+    
+    // Send verification email (async, don't wait)
+    sendOwnerVerificationEmail(ownerEmail, verificationToken).catch(err => {
+      console.error('Failed to send owner verification email:', err.message);
+    });
+    
   } catch (e) {
     console.log('Owner account may already exist:', e.message);
   }
