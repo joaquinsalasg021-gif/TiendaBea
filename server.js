@@ -1245,15 +1245,6 @@ async function startServer() {
     // Force reseed to ensure products exist
     forceReseed();
     
-    // Delete existing owner if exists (for fresh start)
-    const existingOwner = db().prepare("SELECT id FROM users WHERE role = 'owner'").get();
-    if (existingOwner) {
-      console.log('Removing existing owner for fresh start...');
-      db().prepare("DELETE FROM users WHERE role = 'owner'").run();
-      db().prepare("DELETE FROM settings WHERE key = 'owner_created'").run();
-      db().prepare("INSERT INTO settings (key, value) VALUES ('owner_created', 'false')").run();
-    }
-    
     // Auto-delete orders in 'registered' status for more than 48 hours
     setInterval(() => {
       try {
