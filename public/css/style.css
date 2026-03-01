@@ -1611,6 +1611,79 @@ h1, h2, h3, h4, h5, h6 {
   color:#6b7280;
 }
 
+/* Payment Info Section on Checkout */
+.payment-info-section{
+  background:#f8fafc;
+  border:2px solid #e2e8f0;
+  border-radius:12px;
+  padding:15px;
+  margin:15px 0;
+}
+
+.payment-info-section h4{
+  margin:0 0 5px 0;
+  color:#1e293b;
+  font-size:16px;
+}
+
+.payment-info-text{
+  color:#64748b;
+  font-size:13px;
+  margin:0 0 12px 0;
+}
+
+.payment-grid{
+  display:grid;
+  grid-template-columns:repeat(2, 1fr);
+  gap:10px;
+}
+
+.payment-item{
+  background:white;
+  border:1px solid #e2e8f0;
+  border-radius:8px;
+  padding:10px;
+  text-align:center;
+}
+
+.payment-item-header{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  margin-bottom:5px;
+  font-weight:600;
+  font-size:13px;
+}
+
+.payment-item-header img{
+  height:20px;
+  width:auto;
+}
+
+.payment-item p{
+  margin:3px 0;
+  font-size:12px;
+}
+
+.payment-item .titular{
+  color:#64748b;
+  font-size:11px;
+}
+
+.qr-small{
+  max-width:80px;
+  height:auto;
+  border-radius:5px;
+  margin-top:5px;
+}
+
+@media (max-width:480px){
+  .payment-grid{
+    grid-template-columns:1fr;
+  }
+}
+
 /* ============================================
    RESPONSIVE STYLES - MOBILE FIRST
    ============================================ */
