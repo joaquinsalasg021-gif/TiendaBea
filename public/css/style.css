@@ -81,26 +81,6 @@ h1, h2, h3, h4, h5, h6 {
   gap: 1rem;
 }
 
-.navbar-social {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-right: 1rem;
-}
-
-.navbar-right {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-/* Ensure social icons visible on desktop */
-@media (min-width: 769px) {
-  .navbar-social {
-    display: flex !important;
-  }
-}
-
 .nav-social-link {
   display: flex;
   align-items: center;
@@ -1494,6 +1474,33 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--primary);
 }
 
+.sidebar-social {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  margin-top: 1rem;
+  border-top: 1px solid var(--gray-light);
+}
+
+.sidebar-social-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(139, 92, 246, 0.1);
+  color: var(--primary);
+  transition: all 0.3s;
+}
+
+.sidebar-social-link:hover {
+  background: var(--primary);
+  color: white;
+  transform: translateY(-2px);
+}
+
 .sidebar-link-icon {
   font-size: 1.2rem;
 }
@@ -1894,23 +1901,6 @@ h1, h2, h3, h4, h5, h6 {
   
   .navbar-toggle {
     display: block;
-  }
-  
-  .navbar-right {
-    display: none;
-    width: 100%;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-  
-  .navbar-right.active {
-    display: flex;
-  }
-  
-  .navbar-social {
-    display: flex;
-    justify-content: center;
-    padding: 0.5rem 0;
   }
   
   .navbar-menu {
