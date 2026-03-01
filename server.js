@@ -125,9 +125,10 @@ app.post('/api/auth/register', async (req, res) => {
     }
 
     // Check if user exists
-    const existingUser = db().prepare('SELECT id FROM users WHERE username = ? OR email = ?').get(username, email);
+    const existingUser = db().prepare('SELECT id, username, email FROM users WHERE username = ? OR email = ?').get(username, email);
     if (existingUser) {
-      return res.status(400).json({ error: 'Username or email already exists' });
+      console.log('User already exists:', existingUser);
+      return res.status(400).json({ error: 'Username or email already exists', details: `${existingUser.username} ya usa ese correo` });
     }
 
     // Check if owner already exists
@@ -979,9 +980,10 @@ app.post('/api/admin/create-admin', authMiddleware, requireRole('owner'), async 
       return res.status(400).json({ error: 'All fields are required' });
     }
 
-    const existingUser = db().prepare('SELECT id FROM users WHERE username = ? OR email = ?').get(username, email);
+    const existingUser = db().prepare('SELECT id, username, email FROM users WHERE username = ? OR email = ?').get(username, email);
     if (existingUser) {
-      return res.status(400).json({ error: 'Username or email already exists' });
+      console.log('Admin user already exists:', existingUser);
+      return res.status(400).json({ error: 'Username or email already exists', details: `${existingUser.username} ya usa ese correo` });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
