@@ -70,48 +70,39 @@
             <h4>💳 Medios de Pago</h4>
             <p class="payment-info-text">Realiza tu abono y envíanos el voucher</p>
             
-            <div class="payment-grid">
-              <div class="payment-item">
-                <div class="payment-item-header">
-                  <img src="/bancos/bcp_logo.jfif" alt="BCP">
-                  <span>BCP</span>
-                </div>
-                <p><strong>1914220797011</strong></p>
-                <p class="titular">B & K IMPORT SAC</p>
+            <div class="payment-grid-checkout">
+              <div class="payment-card-checkout">
+                <img src="/bancos/bcp_logo.jfif" alt="BCP" class="payment-logo-img">
+                <span class="payment-card-name">BCP</span>
+                <span class="payment-card-number">1914220797011</span>
+                <button class="btn-copy-checkout" onclick="CartPage.copyToClipboard('1914220797011', this)">Copiar</button>
               </div>
               
-              <div class="payment-item">
-                <div class="payment-item-header">
-                  <img src="/bancos/bbva_logo.jfif" alt="BBVA">
-                  <span>BBVA</span>
-                </div>
-                <p><strong>0011-0183-02014168-05</strong></p>
-                <p class="titular">B & K IMPORT SAC</p>
+              <div class="payment-card-checkout">
+                <img src="/bancos/bbva_logo.jfif" alt="BBVA" class="payment-logo-img">
+                <span class="payment-card-name">BBVA</span>
+                <span class="payment-card-number">0011-0183-02014168-05</span>
+                <button class="btn-copy-checkout" onclick="CartPage.copyToClipboard('0011-0183-02014168-05', this)">Copiar</button>
               </div>
               
-              <div class="payment-item">
-                <div class="payment-item-header">
-                  <img src="/bancos/interbank_logo.jfif" alt="Interbank">
-                  <span>Interbank</span>
-                </div>
-                <p><strong>8983147886200</strong></p>
-                <p class="titular">CAROL CRUZ MORE</p>
+              <div class="payment-card-checkout">
+                <img src="/bancos/interbank_logo.jfif" alt="Interbank" class="payment-logo-img">
+                <span class="payment-card-name">Interbank</span>
+                <span class="payment-card-number">8983147886200</span>
+                <button class="btn-copy-checkout" onclick="CartPage.copyToClipboard('8983147886200', this)">Copiar</button>
               </div>
               
-              <div class="payment-item">
-                <div class="payment-item-header">
-                  <img src="/bancos/yape_logo.jfif" alt="Yape">
-                  <span>Yape</span>
-                </div>
-                <p><strong>919166646</strong></p>
-                <p class="titular">B & K IMPORT SAC</p>
+              <div class="payment-card-checkout">
+                <img src="/bancos/yape_logo.jfif" alt="Yape" class="payment-logo-img">
+                <span class="payment-card-name">Yape</span>
+                <span class="payment-card-number">919166646</span>
+                <button class="btn-copy-checkout" onclick="CartPage.copyToClipboard('919166646', this)">Copiar</button>
               </div>
               
-              <div class="payment-item">
-                <div class="payment-item-header">
-                  <span>📱 Plin</span>
-                </div>
-                <img src="/bancos/plin_qr.png" alt="Plin QR" class="qr-small">
+              <div class="payment-card-checkout">
+                <span class="payment-card-name">📱 Plin</span>
+                <span class="payment-card-number">QR</span>
+                <button class="btn-copy-checkout" onclick="CartPage.showPlinQR()">Ver QR</button>
               </div>
             </div>
           </div>

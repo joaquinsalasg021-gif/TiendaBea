@@ -1678,7 +1678,70 @@ h1, h2, h3, h4, h5, h6 {
   margin-top:3px;
 }
 
-/* Payment Grid Modal */
+/* Payment Grid Checkout */
+.payment-grid-checkout{
+  display:grid;
+  grid-template-columns:repeat(3, 1fr);
+  gap:10px;
+  margin-top:15px;
+}
+
+.payment-card-checkout{
+  background:#f8fafc;
+  border:1px solid #e2e8f0;
+  border-radius:10px;
+  padding:12px 8px;
+  text-align:center;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:4px;
+}
+
+.payment-logo-img{
+  max-height:60px;
+  max-width:70px;
+  object-fit:contain;
+}
+
+.payment-card-name{
+  font-weight:600;
+  font-size:13px;
+  color:#1e293b;
+}
+
+.payment-card-number{
+  font-size:10px;
+  color:#475569;
+  word-break:break-all;
+}
+
+.btn-copy-checkout{
+  background:#667eea;
+  color:white;
+  border:none;
+  padding:4px 10px;
+  border-radius:4px;
+  cursor:pointer;
+  font-size:11px;
+  margin-top:2px;
+}
+
+.btn-copy-checkout:hover{
+  background:#5568d3;
+}
+
+@media (max-width:768px){
+  .payment-grid-checkout{
+    grid-template-columns:repeat(2, 1fr);
+  }
+}
+
+@media (max-width:400px){
+  .payment-grid-checkout{
+    grid-template-columns:1fr;
+  }
+}
 .payment-grid-modal{
   display:grid;
   grid-template-columns:repeat(3, 1fr);
