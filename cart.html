@@ -102,27 +102,90 @@
   }
 </script>
 
-<!-- WhatsApp Modal -->
-<div class="modal" id="whatsapp-modal" style="display:none;">
+<!-- Payment Info Modal -->
+<div class="modal" id="payment-modal" style="display:none;">
   <div class="modal-content">
     <div class="modal-header">
-      <h2>¡Pedido agendado!</h2>
-      <button class="modal-close" id="whatsapp-close">&times;</button>
+      <h2>✅ Pedido agendado – Datos para pago</h2>
+      <button class="modal-close" id="payment-close">&times;</button>
     </div>
-
     <div class="modal-body">
-      <p><strong>¡Pedido realizado exitosamente!</strong></p>
-      <p>Ahora, escríbenos por WhatsApp con tu código de pedido:</p>
-      <div class="order-code-box" id="whatsapp-order-code">ORD-XXXXXXX</div>
-
-      <div class="d-flex" style="gap:10px; margin-top:14px; flex-wrap:wrap;">
-        <button id="whatsapp-open-btn" class="btn btn-success">
-          📲 Abrir WhatsApp
+      <p style="margin-bottom:20px;">Por favor realiza el abono y envíanos el voucher para validar y emitir la guía.</p>
+      
+      <div class="payment-methods">
+        <!-- BCP -->
+        <div class="payment-method">
+          <div class="payment-header">
+            <img src="/bancos/bcp_logo.jfif" alt="BCP" class="payment-logo">
+            <span>BCP</span>
+          </div>
+          <div class="payment-details">
+            <p><strong>Cuenta:</strong> 1914220797011</p>
+            <p><strong>Titular:</strong> B & K IMPORT SAC</p>
+            <button class="btn-copy" onclick="CartPage.copyToClipboard('1914220797011', this)">Copiar</button>
+          </div>
+        </div>
+        
+        <!-- BBVA -->
+        <div class="payment-method">
+          <div class="payment-header">
+            <img src="/bancos/bbva_logo.jfif" alt="BBVA" class="payment-logo">
+            <span>BBVA</span>
+          </div>
+          <div class="payment-details">
+            <p><strong>Cuenta:</strong> 0011-0183-02014168-05</p>
+            <p><strong>Titular:</strong> B & K IMPORT SAC</p>
+            <button class="btn-copy" onclick="CartPage.copyToClipboard('0011-0183-02014168-05', this)">Copiar</button>
+          </div>
+        </div>
+        
+        <!-- Interbank -->
+        <div class="payment-method">
+          <div class="payment-header">
+            <img src="/bancos/interbank_logo.jfif" alt="Interbank" class="payment-logo">
+            <span>Interbank</span>
+          </div>
+          <div class="payment-details">
+            <p><strong>Cuenta:</strong> 8983147886200</p>
+            <p><strong>Titular:</strong> CAROL CRUZ MORE</p>
+            <button class="btn-copy" onclick="CartPage.copyToClipboard('8983147886200', this)">Copiar</button>
+          </div>
+        </div>
+        
+        <!-- Yape -->
+        <div class="payment-method">
+          <div class="payment-header">
+            <img src="/bancos/yape_logo.jfif" alt="Yape" class="payment-logo">
+            <span>Yape</span>
+          </div>
+          <div class="payment-details">
+            <p><strong>Número:</strong> 919166646</p>
+            <p><strong>Titular:</strong> B & K IMPORT SAC</p>
+            <button class="btn-copy" onclick="CartPage.copyToClipboard('919166646', this)">Copiar</button>
+          </div>
+        </div>
+        
+        <!-- Plin QR -->
+        <div class="payment-method">
+          <div class="payment-header">
+            <span>📱 Plin</span>
+          </div>
+          <div class="payment-details">
+            <img src="/bancos/plin_qr.png" alt="Plin QR" class="qr-image">
+          </div>
+        </div>
+      </div>
+      
+      <div class="order-code-section">
+        <p><strong>Código de pedido:</strong></p>
+        <div class="order-code-box" id="payment-order-code">ORD-XXXXXXX</div>
+      </div>
+      
+      <div class="d-flex" style="gap:10px; margin-top:20px; flex-wrap:wrap;">
+        <button id="payment-copy-btn" class="btn btn-primary">
+          📋 Copiar código de pedido
         </button>
-        <button id="whatsapp-copy-btn" class="btn btn-outline">
-          📋 Copiar código
-        </button>
-        <a href="/orders" class="btn btn-primary">
+        <a href="/orders" class="btn btn-outline">
           Ir a Mis Pedidos
         </a>
       </div>

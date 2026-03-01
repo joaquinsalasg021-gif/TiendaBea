@@ -560,26 +560,19 @@ const CartPage = {
   },
   
   showWhatsappModal: (orderCode, name, lastname, phone, dni, shippingAgency, province, scheduledDate, scheduledTime) => {
-    const modal = document.getElementById('whatsapp-modal');
-    const codeEl = document.getElementById('whatsapp-order-code');
-    const openBtn = document.getElementById('whatsapp-open-btn');
-    const copyBtn = document.getElementById('whatsapp-copy-btn');
-    const closeBtn = document.getElementById('whatsapp-close');
+    // Show payment modal with bank details
+    CartPage.showPaymentModal(orderCode);
+  },
+  
+  showPaymentModal: (orderCode) => {
+    const modal = document.getElementById('payment-modal');
+    const codeEl = document.getElementById('payment-order-code');
+    const copyBtn = document.getElementById('payment-copy-btn');
+    const closeBtn = document.getElementById('payment-close');
     
     if (!modal) return;
     
     codeEl.textContent = orderCode;
-    
-    // Build WhatsApp message with complete order details
-    const timeStr = scheduledTime ? ` a las ${scheduledTime}` : '';
-    const msg = `Hola Bea, soy ${name} ${lastname}. He agendado un pedido con el código ${orderCode} para el ${scheduledDate}${timeStr}. Mi número es ${phone || 'No proporcionado'} y mi DNI es ${dni || 'No proporcionado'}. Mi agencia de envío es ${shippingAgency || 'No proporcionada'} y la provincia de destino es ${province || 'No proporcionada'}.`;
-    const url = `https://wa.me/51929007757?text=${encodeURIComponent(msg)}`;
-    
-    // Use window.location.href instead of window.open to avoid popup blocking
-    openBtn.onclick = (e) => {
-      e.preventDefault();
-      window.location.href = url;
-    };
     
     copyBtn.onclick = async () => {
       try {
@@ -597,6 +590,17 @@ const CartPage = {
     modal.onclick = (e) => { if (e.target === modal) close(); };
     
     modal.style.display = 'flex';
+  },
+  
+  copyToClipboard: async (text, btn) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      const originalText = btn.textContent;
+      btn.textContent = 'Copiado! ✅';
+      setTimeout(() => { btn.textContent = originalText; }, 2000);
+    } catch {
+      UI.showToast('No se pudo copiar', 'error');
+    }
   },
   
   setupCheckout: () => {

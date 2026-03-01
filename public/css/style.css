@@ -1520,6 +1520,97 @@ h1, h2, h3, h4, h5, h6 {
   overflow:hidden;
 }
 
+/* Payment Modal Styles */
+#payment-modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.5);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+}
+
+#payment-modal .modal-content{
+  background:#fff;
+  border-radius:14px;
+  overflow:hidden;
+  max-width:500px;
+  width:90%;
+  max-height:90vh;
+  overflow-y:auto;
+}
+
+.payment-methods{
+  display:flex;
+  flex-direction:column;
+  gap:15px;
+  margin:20px 0;
+}
+
+.payment-method{
+  border:1px solid #e5e7eb;
+  border-radius:10px;
+  padding:15px;
+  background:#fafafa;
+}
+
+.payment-header{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:10px;
+  font-weight:600;
+  font-size:16px;
+}
+
+.payment-logo{
+  height:30px;
+  width:auto;
+}
+
+.payment-details{
+  font-size:14px;
+  color:#374151;
+}
+
+.payment-details p{
+  margin:5px 0;
+}
+
+.btn-copy{
+  background:#667eea;
+  color:white;
+  border:none;
+  padding:6px 12px;
+  border-radius:5px;
+  cursor:pointer;
+  font-size:13px;
+  margin-top:5px;
+}
+
+.btn-copy:hover{
+  background:#5568d3;
+}
+
+.qr-image{
+  max-width:150px;
+  height:auto;
+  border-radius:8px;
+  margin-top:10px;
+}
+
+.order-code-section{
+  margin:20px 0;
+  text-align:center;
+}
+
+.order-code-section p{
+  margin-bottom:8px;
+  font-size:14px;
+  color:#6b7280;
+}
+
 /* ============================================
    RESPONSIVE STYLES - MOBILE FIRST
    ============================================ */
