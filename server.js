@@ -24,10 +24,9 @@ app.use(express.json());
 
 // Serve static files from public folder
 app.use(express.static(path.join(__dirname, 'public'), { 
-  maxAge: '7d',
+  maxAge: '1h',
   etag: true,
-  lastModified: true,
-  immutable: true
+  lastModified: true
 }));
 
 // Serve index.html from root
