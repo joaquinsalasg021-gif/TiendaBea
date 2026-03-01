@@ -5,16 +5,21 @@ const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
 
 // Create Nodemailer transporter with Gmail
 function createTransporter() {
+  // Try different port configurations for better compatibility
+  const port = parseInt(process.env.SMTP_PORT) || 25;
+  const secure = port === 465;
+  
   return nodemailer.createTransport({
     host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: parseInt(process.env.SMTP_PORT) || 465,
-    secure: true,
-    requireTLS: true,
+    port: port,
+    secure: secure,
+    requireTLS: !secure,
     tls: {
       rejectUnauthorized: false
     },
-    connectionTimeout: 60000,
-    greetingTimeout: 60000,
+    connectionTimeout: 90000,
+    greetingTimeout: 90000,
+    socketTimeout: 90000,
     auth: {
       user: process.env.SMTP_USER || 'joaquinsalasg021@gmail.com',
       pass: process.env.SMTP_PASS
