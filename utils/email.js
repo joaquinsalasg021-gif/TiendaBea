@@ -7,14 +7,14 @@ const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
 function createTransporter() {
   return nodemailer.createTransport({
     host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: parseInt(process.env.SMTP_PORT) || 587,
-    secure: false,
+    port: parseInt(process.env.SMTP_PORT) || 465,
+    secure: true,
     requireTLS: true,
     tls: {
       rejectUnauthorized: false
     },
-    connectionTimeout: 30000,
-    greetingTimeout: 30000,
+    connectionTimeout: 60000,
+    greetingTimeout: 60000,
     auth: {
       user: process.env.SMTP_USER || 'joaquinsalasg021@gmail.com',
       pass: process.env.SMTP_PASS
