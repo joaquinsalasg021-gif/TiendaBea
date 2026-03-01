@@ -1,13 +1,22 @@
 const { Resend } = require('resend');
 
-const resend = new Resend(process.env.RESEND_API_KEY || 're_123456789');
+const resendApiKey = process.env.RESEND_API_KEY;
+const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
 const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
 
+// For Resend free tier, we must use their default sender
+const DEFAULT_FROM = 'TiendaBea <onboarding@resend.dev>';
+
 async function sendEmail(to, subject, html) {
+  if (!resend) {
+    console.error('Resend not configured');
+    return { success: false, error: 'Resend not configured' };
+  }
+  
   try {
     const data = await resend.emails.send({
-      from: process.env.FROM_EMAIL || 'TiendaBea <onboarding@resend.dev>',
+      from: DEFAULT_FROM,
       to: to,
       subject: subject,
       html: html
