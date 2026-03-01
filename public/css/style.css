@@ -1179,7 +1179,7 @@ h1, h2, h3, h4, h5, h6 {
   position: relative;
   width: 100%;
   max-width: 1100px;
-  height: 570px;
+  height: 700px;
   margin: 0 auto 2rem;
   overflow: hidden;
   border-radius: 12px;
@@ -1288,7 +1288,7 @@ h1, h2, h3, h4, h5, h6 {
 @media (max-width: 768px) {
   .carousel-container {
     max-width: 98%;
-    height: 390px;
+    height: 440px;
     border-radius: 8px;
   }
   
@@ -1313,7 +1313,7 @@ h1, h2, h3, h4, h5, h6 {
 
 @media (max-width: 480px) {
   .carousel-container {
-    height: 330px;
+    height: 360px;
     max-width: 100%;
     border-radius: 0;
     margin-bottom: 1rem;
