@@ -43,6 +43,7 @@ app.get('/register', (req, res) => res.sendFile(path.join(__dirname, 'register.h
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'admin.html')));
 app.get('/owner', (req, res) => res.sendFile(path.join(__dirname, 'owner.html')));
 app.get('/product', (req, res) => res.sendFile(path.join(__dirname, 'product.html')));
+app.get('/product.html', (req, res) => res.sendFile(path.join(__dirname, 'product.html')));
 app.get('/admin-orders', (req, res) => res.sendFile(path.join(__dirname, 'admin-orders.html')));
 app.get('/financial-app', (req, res) => res.sendFile(path.join(__dirname, 'financial-app.html')));
 app.get('/tiendas', (req, res) => res.sendFile(path.join(__dirname, 'tiendas.html')));
@@ -1218,6 +1219,14 @@ app.get('/admin/orders', (req, res) => {
 
 app.get('/owner', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'owner.html'));
+});
+
+app.get('/product', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'product.html'));
+});
+
+app.get('/product.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'product.html'));
 });
 
 // Initialize database and start server

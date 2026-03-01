@@ -372,7 +372,7 @@ const HomePage = {
       
       html += `
         <div class="product-card">
-          <a href="/product.html?id=${product.id}" class="product-card-link">
+          <a href="/product?id=${product.id}" class="product-card-link">
             ${imageHtml}
             <div class="product-info">
               <h3 class="product-name">${product.name}</h3>
@@ -1083,7 +1083,7 @@ const AdminPage = {
       }
     } else {
       // Fallback to product page
-      window.location.href = `/product.html?id=${productId}&edit=true`;
+      window.location.href = `/product?id=${productId}&edit=true`;
     }
   },
   
