@@ -161,85 +161,82 @@
       <button class="modal-close" id="payment-close">&times;</button>
     </div>
     <div class="modal-body">
-      <p style="margin-bottom:20px;">Por favor realiza el abono y envíanos el voucher para validar y emitir la guía.</p>
+      <p style="margin-bottom:15px;">Por favor realiza el abono y envíanos el voucher para validar y emitir la guía.</p>
       
-      <div class="payment-methods">
+      <div class="payment-grid-modal">
         <!-- BCP -->
-        <div class="payment-method">
-          <div class="payment-header">
-            <img src="/bancos/bcp_logo.jfif" alt="BCP" class="payment-logo">
-            <span>BCP</span>
-          </div>
-          <div class="payment-details">
-            <p><strong>Cuenta:</strong> 1914220797011</p>
-            <p><strong>Titular:</strong> B & K IMPORT SAC</p>
-            <button class="btn-copy" onclick="CartPage.copyToClipboard('1914220797011', this)">Copiar</button>
-          </div>
+        <div class="payment-card">
+          <img src="/bancos/bcp_logo.jfif" alt="BCP" class="payment-logo-small">
+          <span class="payment-name">BCP</span>
+          <span class="payment-data">1914220797011</span>
+          <button class="btn-copy-small" onclick="CartPage.copyToClipboard('1914220797011', this)">Copiar</button>
         </div>
         
         <!-- BBVA -->
-        <div class="payment-method">
-          <div class="payment-header">
-            <img src="/bancos/bbva_logo.jfif" alt="BBVA" class="payment-logo">
-            <span>BBVA</span>
-          </div>
-          <div class="payment-details">
-            <p><strong>Cuenta:</strong> 0011-0183-02014168-05</p>
-            <p><strong>Titular:</strong> B & K IMPORT SAC</p>
-            <button class="btn-copy" onclick="CartPage.copyToClipboard('0011-0183-02014168-05', this)">Copiar</button>
-          </div>
+        <div class="payment-card">
+          <img src="/bancos/bbva_logo.jfif" alt="BBVA" class="payment-logo-small">
+          <span class="payment-name">BBVA</span>
+          <span class="payment-data">0011-0183-02014168-05</span>
+          <button class="btn-copy-small" onclick="CartPage.copyToClipboard('0011-0183-02014168-05', this)">Copiar</button>
         </div>
         
         <!-- Interbank -->
-        <div class="payment-method">
-          <div class="payment-header">
-            <img src="/bancos/interbank_logo.jfif" alt="Interbank" class="payment-logo">
-            <span>Interbank</span>
-          </div>
-          <div class="payment-details">
-            <p><strong>Cuenta:</strong> 8983147886200</p>
-            <p><strong>Titular:</strong> CAROL CRUZ MORE</p>
-            <button class="btn-copy" onclick="CartPage.copyToClipboard('8983147886200', this)">Copiar</button>
-          </div>
+        <div class="payment-card">
+          <img src="/bancos/interbank_logo.jfif" alt="Interbank" class="payment-logo-small">
+          <span class="payment-name">Interbank</span>
+          <span class="payment-data">8983147886200</span>
+          <button class="btn-copy-small" onclick="CartPage.copyToClipboard('8983147886200', this)">Copiar</button>
         </div>
         
         <!-- Yape -->
-        <div class="payment-method">
-          <div class="payment-header">
-            <img src="/bancos/yape_logo.jfif" alt="Yape" class="payment-logo">
-            <span>Yape</span>
-          </div>
-          <div class="payment-details">
-            <p><strong>Número:</strong> 919166646</p>
-            <p><strong>Titular:</strong> B & K IMPORT SAC</p>
-            <button class="btn-copy" onclick="CartPage.copyToClipboard('919166646', this)">Copiar</button>
-          </div>
+        <div class="payment-card">
+          <img src="/bancos/yape_logo.jfif" alt="Yape" class="payment-logo-small">
+          <span class="payment-name">Yape</span>
+          <span class="payment-data">919166646</span>
+          <button class="btn-copy-small" onclick="CartPage.copyToClipboard('919166646', this)">Copiar</button>
         </div>
         
         <!-- Plin QR -->
-        <div class="payment-method">
-          <div class="payment-header">
-            <span>📱 Plin</span>
-          </div>
-          <div class="payment-details">
-            <img src="/bancos/plin_qr.png" alt="Plin QR" class="qr-image">
-          </div>
+        <div class="payment-card">
+          <span class="payment-name">📱 Plin</span>
+          <span class="payment-data">Ver QR</span>
+          <button class="btn-copy-small" onclick="CartPage.showPlinQR()">Ver QR</button>
         </div>
       </div>
+      
+      <p class="payment-important">⚠️ <strong>Importante (BBVA):</strong> si eres de provincia el banco puede cobrar comisión S/6.50</p>
       
       <div class="order-code-section">
         <p><strong>Código de pedido:</strong></p>
         <div class="order-code-box" id="payment-order-code">ORD-XXXXXXX</div>
       </div>
       
-      <div class="d-flex" style="gap:10px; margin-top:20px; flex-wrap:wrap;">
-        <button id="payment-copy-btn" class="btn btn-primary">
+      <button id="payment-whatsapp-btn" class="btn btn-success btn-whatsapp">
+        📲 Enviar voucher por WhatsApp
+      </button>
+      
+      <div class="d-flex" style="gap:10px; margin-top:15px; flex-wrap:wrap; justify-content:center;">
+        <button id="payment-copy-btn" class="btn btn-outline">
           📋 Copiar código de pedido
         </button>
         <a href="/orders" class="btn btn-outline">
           Ir a Mis Pedidos
         </a>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Plin QR Modal -->
+<div class="modal" id="plin-qr-modal" style="display:none;">
+  <div class="modal-content" style="max-width:350px;">
+    <div class="modal-header">
+      <h2>📱 Plin QR</h2>
+      <button class="modal-close" onclick="document.getElementById('plin-qr-modal').style.display='none'">&times;</button>
+    </div>
+    <div class="modal-body" style="text-align:center;">
+      <img src="/bancos/plin_qr.png" alt="Plin QR" style="max-width:250px; border-radius:10px;">
+      <p style="margin-top:15px; font-size:13px; color:#666;">Escanea el QR con tu app Plin</p>
     </div>
   </div>
 </div>

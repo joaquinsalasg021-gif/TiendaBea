@@ -1678,6 +1678,107 @@ h1, h2, h3, h4, h5, h6 {
   margin-top:3px;
 }
 
+/* Payment Grid Modal */
+.payment-grid-modal{
+  display:grid;
+  grid-template-columns:repeat(3, 1fr);
+  gap:10px;
+  margin:15px 0;
+}
+
+.payment-card{
+  background:#f8fafc;
+  border:1px solid #e2e8f0;
+  border-radius:10px;
+  padding:12px 8px;
+  text-align:center;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:5px;
+}
+
+.payment-logo-small{
+  height:40px;
+  width:auto;
+}
+
+.payment-name{
+  font-weight:600;
+  font-size:13px;
+  color:#1e293b;
+}
+
+.payment-data{
+  font-size:11px;
+  color:#475569;
+  word-break:break-all;
+}
+
+.btn-copy-small{
+  background:#667eea;
+  color:white;
+  border:none;
+  padding:4px 10px;
+  border-radius:4px;
+  cursor:pointer;
+  font-size:11px;
+  margin-top:3px;
+}
+
+.btn-copy-small:hover{
+  background:#5568d3;
+}
+
+.payment-important{
+  background:#fef3c7;
+  border:1px solid #fcd34d;
+  border-radius:8px;
+  padding:10px;
+  font-size:12px;
+  color:#92400e;
+  margin:15px 0;
+  text-align:center;
+}
+
+.btn-whatsapp{
+  width:100%;
+  padding:12px;
+  font-size:15px;
+  margin-top:10px;
+}
+
+/* Plin QR Modal */
+#plin-qr-modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.5);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:10000;
+}
+
+#plin-qr-modal .modal-content{
+  background:#fff;
+  border-radius:14px;
+  padding:20px;
+  max-width:350px;
+  width:90%;
+}
+
+@media (max-width:600px){
+  .payment-grid-modal{
+    grid-template-columns:repeat(2, 1fr);
+  }
+}
+
+@media (max-width:400px){
+  .payment-grid-modal{
+    grid-template-columns:1fr;
+  }
+}
+
 @media (max-width:480px){
   .payment-grid{
     grid-template-columns:repeat(2, 1fr);

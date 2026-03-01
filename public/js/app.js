@@ -568,6 +568,7 @@ const CartPage = {
     const modal = document.getElementById('payment-modal');
     const codeEl = document.getElementById('payment-order-code');
     const copyBtn = document.getElementById('payment-copy-btn');
+    const whatsBtn = document.getElementById('payment-whatsapp-btn');
     const closeBtn = document.getElementById('payment-close');
     
     if (!modal) return;
@@ -583,6 +584,16 @@ const CartPage = {
       }
     };
     
+    // WhatsApp voucher button
+    whatsBtn.onclick = () => {
+      const user = Auth.getUser();
+      const userName = user?.name || '';
+      const userLastname = user?.lastname || '';
+      const msg = `Buenas Bea, soy ${userName} ${userLastname}. Agendé el pedido ${orderCode}. Adjuntaré mi voucher.`;
+      const url = `https://wa.me/51929007757?text=${encodeURIComponent(msg)}`;
+      window.location.href = url;
+    };
+    
     const close = () => { modal.style.display = 'none'; };
     closeBtn.onclick = close;
     
@@ -590,6 +601,13 @@ const CartPage = {
     modal.onclick = (e) => { if (e.target === modal) close(); };
     
     modal.style.display = 'flex';
+  },
+  
+  showPlinQR: () => {
+    const modal = document.getElementById('plin-qr-modal');
+    if (modal) {
+      modal.style.display = 'flex';
+    }
   },
   
   copyToClipboard: async (text, btn) => {
