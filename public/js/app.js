@@ -1377,9 +1377,10 @@ const OwnerPage = {
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       
+      const emailInput = document.getElementById('admin_email').value;
       const data = {
         username: document.getElementById('admin_username').value,
-        email: document.getElementById('admin_email').value,
+        email: emailInput || null, // Email es opcional ahora
         password: document.getElementById('admin_password').value,
         name: document.getElementById('admin_name').value,
         lastname: document.getElementById('admin_lastname').value,
