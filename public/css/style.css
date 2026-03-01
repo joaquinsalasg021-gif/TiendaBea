@@ -1178,12 +1178,13 @@ h1, h2, h3, h4, h5, h6 {
 .carousel-container {
   position: relative;
   width: 100%;
-  max-width: 800px;
-  height: 300px;
+  max-width: 1200px;
+  height: 350px;
   margin: 0 auto 2rem;
   overflow: hidden;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  aspect-ratio: 16 / 5;
 }
 
 .carousel-track {
@@ -1203,6 +1204,7 @@ h1, h2, h3, h4, h5, h6 {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center;
   position: absolute;
   top: 0;
   left: 0;
@@ -1286,7 +1288,9 @@ h1, h2, h3, h4, h5, h6 {
 /* Carousel responsive */
 @media (max-width: 768px) {
   .carousel-container {
-    height: 200px;
+    max-width: 95%;
+    height: 220px;
+    aspect-ratio: 16 / 7;
     border-radius: 8px;
   }
   
@@ -1311,7 +1315,8 @@ h1, h2, h3, h4, h5, h6 {
 
 @media (max-width: 480px) {
   .carousel-container {
-    height: 160px;
+    height: 180px;
+    aspect-ratio: 16 / 8;
     margin-bottom: 1rem;
   }
 }
