@@ -1178,7 +1178,7 @@ h1, h2, h3, h4, h5, h6 {
 .carousel-container {
   position: relative;
   width: 100%;
-  max-width: 1100px;
+  max-width: 1400px;
   height: 700px;
   margin: 0 auto 2rem;
   overflow: hidden;
