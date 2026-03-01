@@ -925,11 +925,14 @@ app.post('/api/admin/create-admin', authMiddleware, requireRole('owner'), async 
   try {
     const { username, email, password, name, lastname, phone } = req.body;
 
-    if (!username || !email || !password || !name || !lastname) {
-      return res.status(400).json({ error: 'All fields are required' });
+    if (!username || !password || !name || !lastname) {
+      return res.status(400).json({ error: 'Username, password, name and lastname are required' });
     }
 
-    const existingUser = db().prepare('SELECT id, username, email FROM users WHERE username = ? OR email = ?').get(username, email);
+    // Generate email from username if not provided
+    const adminEmail = email || `${username}@tiendabea.local`;
+
+    const existingUser = db().prepare('SELECT id, username, email FROM users WHERE username = ? OR email = ?').get(username, adminEmail);
     if (existingUser) {
       console.log('Admin user already exists:', existingUser);
       return res.status(400).json({ error: 'Username or email already exists', details: `${existingUser.username} ya usa ese correo` });
@@ -947,18 +950,34 @@ app.post('/api/admin/create-admin', authMiddleware, requireRole('owner'), async 
     const result = db().prepare(`
       INSERT INTO users (username, email, password, name, lastname, phone, role, user_code, email_verified, email_verification_token_hash, email_verification_expires)
       VALUES (?, ?, ?, ?, ?, ?, 'admin', ?, 0, ?, ?)
-    `).run(username, email, hashedPassword, name, lastname, phone || null, userCode, tokenHash, tokenExpires);
+    `).run(username, adminEmail, hashedPassword, name, lastname, phone || null, userCode, tokenHash, tokenExpires);
 
-    // Send verification email using Resend
-    const { sendAdminVerificationEmail } = require('./utils/email');
-    const emailResult = await sendAdminVerificationEmail(email, verificationToken);
+    // Send notification to owner email about new admin
+    const ownerEmail = process.env.OWNER_EMAIL || 'joaquinsalasg021@gmail.com';
+    const { sendEmail } = require('./utils/email');
+    
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2>Nuevo administrador creado</h2>
+        <p>Se ha creado un nuevo administrador en TiendaBea:</p>
+        <ul>
+          <li><strong>Usuario:</strong> ${username}</li>
+          <li><strong>Nombre:</strong> ${name} ${lastname}</li>
+          <li><strong>Correo:</strong> ${adminEmail}</li>
+          <li><strong>Código:</strong> ${userCode}</li>
+        </ul>
+        <p>El administrador deberá verificar su correo para poder iniciar sesión.</p>
+      </div>
+    `;
+    
+    const emailResult = await sendEmail(ownerEmail, 'Nuevo administrador creado - TiendaBea', html);
     
     if (!emailResult.success) {
-      console.error('Failed to send admin verification email:', emailResult.error);
+      console.error('Failed to send admin creation notification:', emailResult.error);
     }
 
     const user = db().prepare('SELECT id, username, email, name, lastname, role, user_code, email_verified FROM users WHERE id = ?').get(result.lastInsertRowid);
-    res.status(201).json({ message: 'Admin created successfully. Se envió un correo de verificación.', user });
+    res.status(201).json({ message: 'Admin created successfully. Se notificó al correo del owner.', user });
   } catch (error) {
     console.error('Create admin error:', error);
     res.status(500).json({ error: 'Server error' });
