@@ -36,12 +36,13 @@
           
           <div class="form-group">
             <label class="form-label" for="shipping_agency">Agencia de Envío</label>
-            <select id="shipping_agency" class="form-input" required onchange="toggleOtherAgency()">
+            <select id="shipping_agency" class="form-input" required onchange="CartPage.toggleShippingAgency()">
               <option value="">Seleccione una agencia</option>
               <option value="Shalom">Shalom</option>
               <option value="Marvisur">Marvisur</option>
               <option value="Flores">Flores</option>
               <option value="Centro">Centro</option>
+              <option value="Delivery (solo Lima)">Delivery (solo Lima)</option>
               <option value="Otros">Otros</option>
             </select>
           </div>
@@ -123,10 +124,13 @@
   // Set minimum date to today
   document.getElementById('scheduled_date').min = new Date().toISOString().split('T')[0];
 
-  // Toggle other agency input
-  function toggleOtherAgency() {
+  // Toggle shipping agency inputs
+  function toggleShippingAgency() {
     const select = document.getElementById('shipping_agency');
     const otherGroup = document.getElementById('other_agency_group');
+    const provinceInput = document.getElementById('province');
+    
+    // Handle "Otros" option
     if (select.value === 'Otros') {
       otherGroup.style.display = 'block';
       document.getElementById('other_agency').required = true;
@@ -134,6 +138,14 @@
       otherGroup.style.display = 'none';
       document.getElementById('other_agency').required = false;
       document.getElementById('other_agency').value = '';
+    }
+    
+    // Handle "Delivery (solo Lima)" option
+    if (select.value === 'Delivery (solo Lima)') {
+      provinceInput.value = 'Lima';
+      provinceInput.disabled = true;
+    } else {
+      provinceInput.disabled = false;
     }
   }
 </script>

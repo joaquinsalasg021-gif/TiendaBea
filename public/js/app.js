@@ -644,6 +644,12 @@ const CartPage = {
         shippingAgency = otherAgency;
       }
       
+      // Validate Delivery (solo Lima) - province must be Lima
+      if (shippingAgency === 'Delivery (solo Lima)' && province.toLowerCase() !== 'lima') {
+        UI.showToast('Para Delivery, la provincia debe ser Lima', 'error');
+        return;
+      }
+      
       try {
         const result = await api.post('/orders', {
           scheduled_date: scheduledDate,
