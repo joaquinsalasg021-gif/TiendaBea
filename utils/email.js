@@ -1,29 +1,58 @@
-const { Resend } = require('resend');
-
-const resendApiKey = process.env.RESEND_API_KEY;
-const resend = resendApiKey ? new Resend(resendApiKey) : null;
+const nodemailer = require('nodemailer');
+const crypto = require('crypto');
 
 const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
 
-// For Resend free tier, we must use their default sender
-const DEFAULT_FROM = 'TiendaBea <onboarding@resend.dev>';
+// Create Nodemailer transporter with Gmail
+function createTransporter() {
+  return nodemailer.createTransport({
+    host: process.env.SMTP_HOST || 'smtp.gmail.com',
+    port: parseInt(process.env.SMTP_PORT) || 587,
+    secure: false,
+    requireTLS: true,
+    tls: {
+      rejectUnauthorized: false
+    },
+    connectionTimeout: 30000,
+    greetingTimeout: 30000,
+    auth: {
+      user: process.env.SMTP_USER || 'joaquinsalasg021@gmail.com',
+      pass: process.env.SMTP_PASS
+    }
+  });
+}
 
+// Generate a secure random token
+function generateVerificationToken() {
+  return crypto.randomBytes(32).toString('hex');
+}
+
+// Hash token for storage
+function hashToken(token) {
+  return crypto.createHash('sha256').update(token).digest('hex');
+}
+
+// Send email using Nodemailer with Gmail
 async function sendEmail(to, subject, html) {
-  if (!resend) {
-    console.error('Resend not configured');
-    return { success: false, error: 'Resend not configured' };
+  if (!process.env.SMTP_PASS) {
+    console.error('SMTP_PASS not configured - email will not be sent');
+    console.log('To enable emails, set SMTP_PASS to your Gmail App Password');
+    return { success: false, error: 'SMTP_PASS not configured' };
   }
   
   try {
-    const data = await resend.emails.send({
-      from: DEFAULT_FROM,
+    const transporter = createTransporter();
+    
+    const mailOptions = {
+      from: process.env.FROM_EMAIL || 'TiendaBea <joaquinsalasg021@gmail.com>',
       to: to,
       subject: subject,
       html: html
-    });
+    };
     
-    console.log('Email sent successfully:', data);
-    return { success: true, data };
+    await transporter.sendMail(mailOptions);
+    console.log(`Email sent successfully to: ${to}`);
+    return { success: true };
   } catch (error) {
     console.error('Error sending email:', error.message);
     return { success: false, error: error.message };
@@ -101,5 +130,7 @@ async function sendAdminVerificationEmail(email, token) {
 module.exports = {
   sendEmail,
   sendVerificationEmail,
-  sendAdminVerificationEmail
+  sendAdminVerificationEmail,
+  generateVerificationToken,
+  hashToken
 };
