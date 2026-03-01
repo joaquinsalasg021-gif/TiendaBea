@@ -280,64 +280,13 @@ app.post('/api/auth/resend-verification', async (req, res) => {
       WHERE id = ?
     `).run(tokenHash, tokenExpires, user.id);
     
-    // Send verification email
-    const nodemailer = require('nodemailer');
-    const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
-    const verificationUrl = `${baseUrl}/api/auth/verify-email?token=${verificationToken}`;
+    // Send verification email using Resend
+    const { sendVerificationEmail } = require('./utils/email');
+    const emailResult = await sendVerificationEmail(email, verificationToken);
     
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST || 'smtp.gmail.com',
-      port: parseInt(process.env.SMTP_PORT) || 587,
-      secure: false,
-      requireTLS: true,
-      tls: {
-        rejectUnauthorized: false
-      },
-      connectionTimeout: 15000,
-      greetingTimeout: 15000,
-      auth: {
-        user: process.env.SMTP_USER || 'joaquinsalasg021@gmail.com',
-        pass: process.env.SMTP_PASS
-      }
-    });
-    
-    const mailOptions = {
-      from: process.env.FROM_EMAIL || 'TiendaBea <noreply@tiendabea.com>',
-      to: email,
-      subject: 'Reenviar verificación de correo - TiendaBea',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px 10px 0 0;">
-            <h1 style="color: white; margin: 0; text-align: center;">TiendaBea</h1>
-          </div>
-          <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
-            <h2 style="color: #333; margin-top: 0;">Reenvío de verificación</h2>
-            <p style="color: #666; line-height: 1.6;">
-              Has solicitado reenviar el enlace de verificación de correo. 
-              Haz clic en el botón de abajo para verificar tu correo.
-            </p>
-            <div style="text-align: center; margin: 30px 0;">
-              <a href="${verificationUrl}" style="background: #667eea; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
-                Verificar mi correo
-              </a>
-            </div>
-            <p style="color: #999; font-size: 12px; text-align: center;">
-              Si el botón no funciona, copia y pega este enlace en tu navegador:<br>
-              ${verificationUrl}
-            </p>
-            <p style="color: #999; font-size: 12px;">
-              Este enlace expira en 24 horas.
-            </p>
-          </div>
-          <div style="text-align: center; padding: 20px; color: #999; font-size: 11px;">
-            <p>© ${new Date().getFullYear()} TiendaBea. Todos los derechos reservados.</p>
-          </div>
-        </div>
-      `
-    };
-    
-    await transporter.sendMail(mailOptions);
-    console.log(`Verification email resent to: ${email}`);
+    if (!emailResult.success) {
+      console.error('Failed to send verification email:', emailResult.error);
+    }
     
     res.json({ message: 'Correo de verificación enviado' });
   } catch (error) {
@@ -1000,60 +949,12 @@ app.post('/api/admin/create-admin', authMiddleware, requireRole('owner'), async 
       VALUES (?, ?, ?, ?, ?, ?, 'admin', ?, 0, ?, ?)
     `).run(username, email, hashedPassword, name, lastname, phone || null, userCode, tokenHash, tokenExpires);
 
-    // Send verification email
-    const nodemailer = require('nodemailer');
-    const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
-    const verificationUrl = `${baseUrl}/api/auth/verify-email?token=${verificationToken}`;
+    // Send verification email using Resend
+    const { sendAdminVerificationEmail } = require('./utils/email');
+    const emailResult = await sendAdminVerificationEmail(email, verificationToken);
     
-    try {
-      const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST || 'smtp.gmail.com',
-        port: parseInt(process.env.SMTP_PORT) || 587,
-        secure: false,
-        requireTLS: true,
-        tls: { rejectUnauthorized: false },
-        connectionTimeout: 15000,
-        auth: {
-          user: process.env.SMTP_USER || 'joaquinsalasg021@gmail.com',
-          pass: process.env.SMTP_PASS
-        }
-      });
-      
-      const mailOptions = {
-        from: process.env.FROM_EMAIL || 'TiendaBea <noreply@tiendabea.com>',
-        to: email,
-        subject: 'Verifica tu cuenta de administrador - TiendaBea',
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px 10px 0 0;">
-              <h1 style="color: white; margin: 0; text-align: center;">TiendaBea</h1>
-            </div>
-            <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
-              <h2 style="color: #333; margin-top: 0;">¡Bienvenido!</h2>
-              <p style="color: #666; line-height: 1.6;">
-                Has sido creado como administrador de TiendaBea. Para acceder al panel de administración, 
-                necesitas verificar tu correo electrónico.
-              </p>
-              <div style="text-align: center; margin: 30px 0;">
-                <a href="${verificationUrl}" style="background: #667eea; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
-                  Verificar mi cuenta
-                </a>
-              </div>
-              <p style="color: #999; font-size: 12px; text-align: center;">
-                Si el botón no funciona: ${verificationUrl}
-              </p>
-              <p style="color: #999; font-size: 12px;">
-                Este enlace expira en 24 horas.
-              </p>
-            </div>
-          </div>
-        `
-      };
-      
-      await transporter.sendMail(mailOptions);
-      console.log(`Admin verification email sent to: ${email}`);
-    } catch (emailError) {
-      console.error('Error sending admin verification email:', emailError.message);
+    if (!emailResult.success) {
+      console.error('Failed to send admin verification email:', emailResult.error);
     }
 
     const user = db().prepare('SELECT id, username, email, name, lastname, role, user_code, email_verified FROM users WHERE id = ?').get(result.lastInsertRowid);
