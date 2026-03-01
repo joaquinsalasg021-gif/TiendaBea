@@ -14,7 +14,7 @@ const { initDatabase, getDb, saveDatabase, forceReseed } = require('./database/d
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const JWT_SECRET = process.env.JWT_SECRET || require('crypto').randomBytes(64).toString('hex');
+const JWT_SECRET = process.env.JWT_SECRET || '35df4098bc4bbb3949a68036004b7427db12a0b261e3b9b535dde96850397d924ca2b9cdd8200f864a99ddaa6c31d6a8b78805a952a28b6b8fc772515bc80b55';
 console.log('JWT_SECRET loaded:', JWT_SECRET.substring(0, 10) + '...');
 
 // Middleware
