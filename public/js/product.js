@@ -32,7 +32,7 @@
   
   // Format price
   function formatPrice(price) {
-    return '$' + parseFloat(price).toFixed(2);
+    return 'S/' + parseFloat(price).toFixed(2);
   }
   
   // Render product

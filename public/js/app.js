@@ -174,7 +174,7 @@ const UI = {
   },
   
   formatPrice: (price) => {
-    return `$${parseFloat(price).toFixed(2)}`;
+    return `S/${parseFloat(price).toFixed(2)}`;
   },
   
   formatDate: (dateStr) => {
@@ -1172,7 +1172,7 @@ const AdminPage = {
     `;
     
     users.forEach(user => {
-      const totalSpent = user.total_spent ? `$${user.total_spent.toFixed(2)}` : '$0.00';
+      const totalSpent = user.total_spent ? `S/${user.total_spent.toFixed(2)}` : 'S/0.00';
       html += `
         <tr>
           <td>${user.id}</td>
@@ -1248,7 +1248,7 @@ const AdminPage = {
             <td>${order.order_code}</td>
             <td>${UI.formatDate(order.created_at)}</td>
             <td>${statusLabel}</td>
-            <td>$${order.total_amount.toFixed(2)}</td>
+            <td>S/${order.total_amount.toFixed(2)}</td>
           </tr>
         `;
       });

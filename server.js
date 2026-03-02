@@ -1133,13 +1133,13 @@ async function generateOrderPDF(orderId) {
         y = doc.y;
         doc.text(item.name.substring(0, 30), 50, y);
         doc.text(item.quantity.toString(), 250, y);
-        doc.text(`${item.unit_price.toFixed(2)}`, 300, y);
-        doc.text(`${item.subtotal.toFixed(2)}`, 400, y);
+        doc.text(`S/${item.unit_price.toFixed(2)}`, 300, y);
+        doc.text(`S/${item.subtotal.toFixed(2)}`, 400, y);
         doc.moveDown();
       });
 
       doc.moveDown();
-      doc.fontSize(14).text(`Total: ${order.total_amount.toFixed(2)}`, { align: 'right' });
+      doc.fontSize(14).text(`Total: S/${order.total_amount.toFixed(2)}`, { align: 'right' });
 
       if (order.notes) {
         doc.moveDown(2);
