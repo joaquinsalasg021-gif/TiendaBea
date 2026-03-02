@@ -1111,6 +1111,10 @@ async function generateOrderPDF(orderId) {
       if (order.dni) doc.text(`DNI: ${order.dni}`);
       if (order.shipping_agency) doc.text(`Shipping Agency: ${order.shipping_agency}`);
       if (order.province) doc.text(`Province: ${order.province}`);
+      if (order.packaging) {
+        const packagingLabel = order.packaging === 'estandar' ? 'Estándar (S/10)' : order.packaging === 'grande' ? 'Grande (S/15)' : order.packaging;
+        doc.text(`Embalaje: ${packagingLabel}`);
+      }
       doc.moveDown();
       doc.text(`Scheduled Date: ${order.scheduled_date}`);
       doc.text(`Scheduled Time: ${order.scheduled_time}`);
@@ -1129,6 +1133,7 @@ async function generateOrderPDF(orderId) {
       doc.moveDown();
       
       // Items
+      console.log('Generating PDF - Order items:', items); // Debug log
       items.forEach(item => {
         y = doc.y;
         doc.text(item.name.substring(0, 30), 50, y);
