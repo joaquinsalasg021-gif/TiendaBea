@@ -698,6 +698,17 @@ app.post('/api/orders', authMiddleware, async (req, res) => {
       }
       total += item.price * item.quantity;
     }
+    
+    // Add packaging price to total
+    let packagingPrice = 0;
+    if (packaging === 'estandar') {
+      packagingPrice = 10;
+    } else if (packaging === 'grande') {
+      packagingPrice = 15;
+    }
+    total += packagingPrice;
+    
+    console.log('Order total with packaging:', { total, packaging, packagingPrice });
 
     // Create order
     const orderCode = generateOrderCode();

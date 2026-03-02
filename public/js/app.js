@@ -30,9 +30,11 @@ function toggleSidebar() {
 }
 
 // Global function to open WhatsApp with order info
-function openWhatsApp(orderCode, name, lastname, scheduledDate, scheduledTime, phone, dni, shippingAgency, province) {
+function openWhatsApp(orderCode, name, lastname, scheduledDate, scheduledTime, phone, dni, shippingAgency, province, packaging) {
   const timeStr = scheduledTime ? ` a las ${scheduledTime}` : '';
-  const msg = `Hola Bea, soy ${name} ${lastname}. He agendado un pedido con el código ${orderCode} para el ${scheduledDate}${timeStr}. Mi número es ${phone || 'No proporcionado'} y mi DNI es ${dni || 'No proporcionado'}. Mi agencia de envío es ${shippingAgency || 'No proporcionada'} y la provincia de destino es ${province || 'No proporcionada'}.`;
+  const packagingStr = packaging ? (packaging === 'estandar' ? 'Estándar (S/10)' : packaging === 'grande' ? 'Grande (S/15)' : '') : '';
+  const packagingMsg = packagingStr ? `. Mi embalaje es ${packagingStr}` : '';
+  const msg = `Hola Bea, soy ${name} ${lastname}. He agendado un pedido con el código ${orderCode} para el ${scheduledDate}${timeStr}. Mi número es ${phone || 'No proporcionado'} y mi DNI es ${dni || 'No proporcionado'}. Mi agencia de envío es ${shippingAgency || 'No proporcionada'} y la provincia de destino es ${province || 'No proporcionada'}${packagingMsg}.`;
   const url = `https://wa.me/970859256?text=${encodeURIComponent(msg)}`;
   window.location.href = url;
 }
@@ -466,6 +468,7 @@ const CartPage = {
       const orderProvince = order.province || '';
       const orderDate = order.scheduled_date || '';
       const orderTime = order.scheduled_time || '';
+      const orderPackaging = order.packaging || '';
       
       html += `
         <tr>
@@ -473,7 +476,7 @@ const CartPage = {
           <td>${UI.formatDateTime(order.scheduled_date, order.scheduled_time)}</td>
           <td>${UI.formatPrice(order.total_amount)}</td>
           <td><span class="order-status ${statusClass}">${statusLabel}</span></td>
-          <td><button onclick="openWhatsApp('${order.order_code}', '${orderName}', '${orderLastname}', '${orderDate}', '${orderTime}', '${orderPhone}', '${orderDni}', '${orderShipping}', '${orderProvince}')" class="btn btn-sm btn-success" title="Enviar por WhatsApp">📲 WhatsApp</button></td>
+          <td><button onclick="openWhatsApp('${order.order_code}', '${orderName}', '${orderLastname}', '${orderDate}', '${orderTime}', '${orderPhone}', '${orderDni}', '${orderShipping}', '${orderProvince}', '${orderPackaging}')" class="btn btn-sm btn-success" title="Enviar por WhatsApp">📲 WhatsApp</button></td>
           <td><a href="/orders.html?id=${order.id}" class="btn btn-sm btn-primary">Ver</a></td>
           <td><button onclick="generateGuide(${order.id})" class="btn btn-sm btn-accent" title="Detalles del Pedido">📄 Guía</button></td>
         </tr>
@@ -490,6 +493,7 @@ const CartPage = {
     if (!items.length) {
       container.innerHTML = UI.showEmpty('Tu carrito está vacío');
       document.getElementById('cart-summary').classList.add('d-none');
+      document.getElementById('packaging-row').style.display = 'none';
       return;
     }
     
@@ -530,7 +534,27 @@ const CartPage = {
     html += `</tbody></table>`;
     container.innerHTML = html;
     
-    document.getElementById('cart-total').textContent = UI.formatPrice(total);
+    // Get packaging price
+    const packagingSelect = document.getElementById('packaging');
+    let packagingPrice = 0;
+    if (packagingSelect && packagingSelect.value === 'estandar') {
+      packagingPrice = 10;
+    } else if (packagingSelect && packagingSelect.value === 'grande') {
+      packagingPrice = 15;
+    }
+    
+    // Update totals
+    document.getElementById('cart-subtotal').textContent = UI.formatPrice(total);
+    
+    const packagingRow = document.getElementById('packaging-row');
+    if (packagingPrice > 0) {
+      document.getElementById('cart-packaging').textContent = UI.formatPrice(packagingPrice);
+      packagingRow.style.display = 'block';
+    } else {
+      packagingRow.style.display = 'none';
+    }
+    
+    document.getElementById('cart-total').textContent = UI.formatPrice(total + packagingPrice);
     document.getElementById('cart-summary').classList.remove('d-none');
   },
   
@@ -625,6 +649,14 @@ const CartPage = {
     const form = document.getElementById('checkout-form');
     if (!form) return;
     
+    // Add packaging change listener to update total
+    const packagingSelect = document.getElementById('packaging');
+    if (packagingSelect) {
+      packagingSelect.addEventListener('change', () => {
+        CartPage.loadCart(); // Reload cart to update totals
+      });
+    }
+    
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       
@@ -679,12 +711,14 @@ const CartPage = {
         const userPhone = user.phone || '';
         
         const scheduledTime = order.scheduled_time ?? 'No especificada';
+        const packagingText = order.packaging ? (order.packaging === 'estandar' ? 'Estándar (S/10)' : order.packaging === 'grande' ? 'Grande (S/15)' : 'No seleccionado') : 'No seleccionado';
         const message = `Buenas Bea, soy ${order.name} ${order.lastname}.\n` +
           `Agendé un pedido con el código ${order.order_code} para la fecha ${order.scheduled_date} a las ${scheduledTime}.\n` +
           `Mi número es: ${userPhone}\n` +
           `Mi DNI es: ${order.dni}\n` +
           `Agencia de envío: ${order.shipping_agency}\n` +
-          `Provincia de destino: ${order.province}`;
+          `Provincia de destino: ${order.province}\n` +
+          `Embalaje: ${packagingText}`;
         
         const STORE_PHONE = '970859256';
         const whatsappUrl = `https://wa.me/${STORE_PHONE}?text=${encodeURIComponent(message)}`;
@@ -753,6 +787,7 @@ const OrdersPage = {
       const orderProvince = order.province || '';
       const orderDate = order.scheduled_date || '';
       const orderTime = order.scheduled_time || '';
+      const orderPackaging = order.packaging || '';
       
       html += `
         <tr>
@@ -760,7 +795,7 @@ const OrdersPage = {
           <td>${UI.formatDateTime(order.scheduled_date, order.scheduled_time)}</td>
           <td>${UI.formatPrice(order.total_amount)}</td>
           <td><span class="order-status ${statusClass}">${statusLabel}</span></td>
-          <td><button onclick="openWhatsApp('${order.order_code}', '${orderName}', '${orderLastname}', '${orderDate}', '${orderTime}', '${orderPhone}', '${orderDni}', '${orderShipping}', '${orderProvince}')" class="btn btn-sm btn-success" title="Enviar por WhatsApp">📲 WhatsApp</button></td>
+          <td><button onclick="openWhatsApp('${order.order_code}', '${orderName}', '${orderLastname}', '${orderDate}', '${orderTime}', '${orderPhone}', '${orderDni}', '${orderShipping}', '${orderProvince}', '${orderPackaging}')" class="btn btn-sm btn-success" title="Enviar por WhatsApp">📲 WhatsApp</button></td>
           <td><a href="/orders.html?id=${order.id}" class="btn btn-sm btn-primary">Ver</a></td>
           <td><button onclick="generateGuide(${order.id})" class="btn btn-sm btn-accent" title="Generar Guía">📄 Guía</button></td>
         </tr>
