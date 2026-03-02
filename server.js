@@ -735,6 +735,10 @@ app.post('/api/orders', authMiddleware, async (req, res) => {
       insertOrderItem.run(orderId, item.product_id, item.quantity, item.price, subtotal);
       updateStock.run(item.quantity, item.product_id);
     }
+    
+    // Verify order items were saved
+    const savedItems = db().prepare('SELECT * FROM order_items WHERE order_id = ?').all(orderId);
+    console.log('Saved order items:', savedItems);
 
     // Clear cart
     db().prepare('DELETE FROM cart_items WHERE user_id = ?').run(req.user.id);
