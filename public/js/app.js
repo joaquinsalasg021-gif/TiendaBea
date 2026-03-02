@@ -33,7 +33,7 @@ function toggleSidebar() {
 function openWhatsApp(orderCode, name, lastname, scheduledDate, scheduledTime, phone, dni, shippingAgency, province) {
   const timeStr = scheduledTime ? ` a las ${scheduledTime}` : '';
   const msg = `Hola Bea, soy ${name} ${lastname}. He agendado un pedido con el código ${orderCode} para el ${scheduledDate}${timeStr}. Mi número es ${phone || 'No proporcionado'} y mi DNI es ${dni || 'No proporcionado'}. Mi agencia de envío es ${shippingAgency || 'No proporcionada'} y la provincia de destino es ${province || 'No proporcionada'}.`;
-  const url = `https://wa.me/51929007757?text=${encodeURIComponent(msg)}`;
+  const url = `https://wa.me/970859256?text=${encodeURIComponent(msg)}`;
   window.location.href = url;
 }
 
@@ -590,7 +590,7 @@ const CartPage = {
       const userName = user?.name || '';
       const userLastname = user?.lastname || '';
       const msg = `Buenas Bea, soy ${userName} ${userLastname}. Agendé el pedido ${orderCode}. Adjuntaré mi voucher.`;
-      const url = `https://wa.me/51929007757?text=${encodeURIComponent(msg)}`;
+      const url = `https://wa.me/970859256?text=${encodeURIComponent(msg)}`;
       window.location.href = url;
     };
     
@@ -682,7 +682,7 @@ const CartPage = {
           `Agencia de envío: ${order.shipping_agency}\n` +
           `Provincia de destino: ${order.province}`;
         
-        const STORE_PHONE = '51929007757';
+        const STORE_PHONE = '970859256';
         const whatsappUrl = `https://wa.me/${STORE_PHONE}?text=${encodeURIComponent(message)}`;
         
         UI.showToast('¡Pedido realizado exitosamente!');
