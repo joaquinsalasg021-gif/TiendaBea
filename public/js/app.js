@@ -30,11 +30,13 @@ function toggleSidebar() {
 }
 
 // Global function to open WhatsApp with order info
-function openWhatsApp(orderCode, name, lastname, scheduledDate, scheduledTime, phone, dni, shippingAgency, province, packaging) {
+function openWhatsApp(orderCode, name, lastname, scheduledDate, scheduledTime, phone, dni, shippingAgency, province, packaging, filing) {
   const timeStr = scheduledTime ? ` a las ${scheduledTime}` : '';
   const packagingStr = packaging ? (packaging === 'estandar' ? 'Estándar (S/10)' : packaging === 'grande' ? 'Grande (S/15)' : '') : '';
   const packagingMsg = packagingStr ? `. Mi embalaje es ${packagingStr}` : '';
-  const msg = `Hola Bea, soy ${name} ${lastname}. He agendado un pedido con el código ${orderCode} para el ${scheduledDate}${timeStr}. Mi número es ${phone || 'No proporcionado'} y mi DNI es ${dni || 'No proporcionado'}. Mi agencia de envío es ${shippingAgency || 'No proporcionada'} y la provincia de destino es ${province || 'No proporcionada'}${packagingMsg}.`;
+  const filingStr = filing ? (filing === 'estandar' ? 'Estándar (S/10)' : filing === 'grande' ? 'Grande (S/15)' : '') : '';
+  const filingMsg = filingStr ? `. Mi fileado es ${filingStr}` : '';
+  const msg = `Hola Bea, soy ${name} ${lastname}. He agendado un pedido con el código ${orderCode} para el ${scheduledDate}${timeStr}. Mi número es ${phone || 'No proporcionado'} y mi DNI es ${dni || 'No proporcionado'}. Mi agencia de envío es ${shippingAgency || 'No proporcionada'} y la provincia de destino es ${province || 'No proporcionada'}${packagingMsg}${filingMsg}.`;
   const url = `https://wa.me/970859256?text=${encodeURIComponent(msg)}`;
   window.location.href = url;
 }
@@ -469,6 +471,7 @@ const CartPage = {
       const orderDate = order.scheduled_date || '';
       const orderTime = order.scheduled_time || '';
       const orderPackaging = order.packaging || '';
+      const orderFiling = order.filing || '';
       
       html += `
         <tr>
@@ -476,7 +479,7 @@ const CartPage = {
           <td>${UI.formatDateTime(order.scheduled_date, order.scheduled_time)}</td>
           <td>${UI.formatPrice(order.total_amount)}</td>
           <td><span class="order-status ${statusClass}">${statusLabel}</span></td>
-          <td><button onclick="openWhatsApp('${order.order_code}', '${orderName}', '${orderLastname}', '${orderDate}', '${orderTime}', '${orderPhone}', '${orderDni}', '${orderShipping}', '${orderProvince}', '${orderPackaging}')" class="btn btn-sm btn-success" title="Enviar por WhatsApp">📲 WhatsApp</button></td>
+          <td><button onclick="openWhatsApp('${order.order_code}', '${orderName}', '${orderLastname}', '${orderDate}', '${orderTime}', '${orderPhone}', '${orderDni}', '${orderShipping}', '${orderProvince}', '${orderPackaging}', '${orderFiling}')" class="btn btn-sm btn-success" title="Enviar por WhatsApp">📲 WhatsApp</button></td>
           <td><a href="/orders.html?id=${order.id}" class="btn btn-sm btn-primary">Ver</a></td>
           <td><button onclick="generateGuide(${order.id})" class="btn btn-sm btn-accent" title="Detalles del Pedido">📄 Guía</button></td>
         </tr>
@@ -494,6 +497,7 @@ const CartPage = {
       container.innerHTML = UI.showEmpty('Tu carrito está vacío');
       document.getElementById('cart-summary').classList.add('d-none');
       document.getElementById('packaging-row').style.display = 'none';
+      document.getElementById('filing-row').style.display = 'none';
       return;
     }
     
@@ -543,6 +547,15 @@ const CartPage = {
       packagingPrice = 15;
     }
     
+    // Get filing price
+    const filingSelect = document.getElementById('filing');
+    let filingPrice = 0;
+    if (filingSelect && filingSelect.value === 'estandar') {
+      filingPrice = 10;
+    } else if (filingSelect && filingSelect.value === 'grande') {
+      filingPrice = 15;
+    }
+    
     // Update totals
     document.getElementById('cart-subtotal').textContent = UI.formatPrice(total);
     
@@ -554,7 +567,15 @@ const CartPage = {
       packagingRow.style.display = 'none';
     }
     
-    document.getElementById('cart-total').textContent = UI.formatPrice(total + packagingPrice);
+    const filingRow = document.getElementById('filing-row');
+    if (filingPrice > 0) {
+      document.getElementById('cart-filing').textContent = UI.formatPrice(filingPrice);
+      filingRow.style.display = 'block';
+    } else {
+      filingRow.style.display = 'none';
+    }
+    
+    document.getElementById('cart-total').textContent = UI.formatPrice(total + packagingPrice + filingPrice);
     document.getElementById('cart-summary').classList.remove('d-none');
   },
   
@@ -657,6 +678,14 @@ const CartPage = {
       });
     }
     
+    // Add filing change listener to update total
+    const filingSelect = document.getElementById('filing');
+    if (filingSelect) {
+      filingSelect.addEventListener('change', () => {
+        CartPage.loadCart(); // Reload cart to update totals
+      });
+    }
+    
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       
@@ -684,6 +713,8 @@ const CartPage = {
       
       // Get packaging value
       const packaging = document.getElementById('packaging').value;
+      // Get filing value
+      const filing = document.getElementById('filing').value;
       
       try {
         const result = await api.post('/orders', {
@@ -692,7 +723,8 @@ const CartPage = {
           shipping_agency: shippingAgency,
           province,
           notes,
-          packaging
+          packaging,
+          filing
         });
         
         // Clear cart UI
@@ -712,13 +744,15 @@ const CartPage = {
         
         const scheduledTime = order.scheduled_time ?? 'No especificada';
         const packagingText = order.packaging ? (order.packaging === 'estandar' ? 'Estándar (S/10)' : order.packaging === 'grande' ? 'Grande (S/15)' : 'No seleccionado') : 'No seleccionado';
+        const filingText = order.filing ? (order.filing === 'estandar' ? 'Estándar (S/10)' : order.filing === 'grande' ? 'Grande (S/15)' : 'No seleccionado') : 'No seleccionado';
         const message = `Buenas Bea, soy ${order.name} ${order.lastname}.\n` +
           `Agendé un pedido con el código ${order.order_code} para la fecha ${order.scheduled_date} a las ${scheduledTime}.\n` +
           `Mi número es: ${userPhone}\n` +
           `Mi DNI es: ${order.dni}\n` +
           `Agencia de envío: ${order.shipping_agency}\n` +
           `Provincia de destino: ${order.province}\n` +
-          `Embalaje: ${packagingText}`;
+          `Embalaje: ${packagingText}\n` +
+          `Fileado: ${filingText}`;
         
         const STORE_PHONE = '970859256';
         const whatsappUrl = `https://wa.me/${STORE_PHONE}?text=${encodeURIComponent(message)}`;
@@ -788,6 +822,7 @@ const OrdersPage = {
       const orderDate = order.scheduled_date || '';
       const orderTime = order.scheduled_time || '';
       const orderPackaging = order.packaging || '';
+      const orderFiling = order.filing || '';
       
       html += `
         <tr>
@@ -795,7 +830,7 @@ const OrdersPage = {
           <td>${UI.formatDateTime(order.scheduled_date, order.scheduled_time)}</td>
           <td>${UI.formatPrice(order.total_amount)}</td>
           <td><span class="order-status ${statusClass}">${statusLabel}</span></td>
-          <td><button onclick="openWhatsApp('${order.order_code}', '${orderName}', '${orderLastname}', '${orderDate}', '${orderTime}', '${orderPhone}', '${orderDni}', '${orderShipping}', '${orderProvince}', '${orderPackaging}')" class="btn btn-sm btn-success" title="Enviar por WhatsApp">📲 WhatsApp</button></td>
+          <td><button onclick="openWhatsApp('${order.order_code}', '${orderName}', '${orderLastname}', '${orderDate}', '${orderTime}', '${orderPhone}', '${orderDni}', '${orderShipping}', '${orderProvince}', '${orderPackaging}', '${orderFiling}')" class="btn btn-sm btn-success" title="Enviar por WhatsApp">📲 WhatsApp</button></td>
           <td><a href="/orders.html?id=${order.id}" class="btn btn-sm btn-primary">Ver</a></td>
           <td><button onclick="generateGuide(${order.id})" class="btn btn-sm btn-accent" title="Generar Guía">📄 Guía</button></td>
         </tr>

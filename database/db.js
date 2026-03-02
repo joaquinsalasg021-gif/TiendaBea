@@ -127,6 +127,7 @@ async function initDatabase() {
       total_amount REAL NOT NULL,
       notes TEXT,
       packaging TEXT,
+      filing TEXT,
       dni TEXT,
       shipping_agency TEXT,
       province TEXT,
