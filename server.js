@@ -666,9 +666,9 @@ app.delete('/api/cart/clear', authMiddleware, (req, res) => {
 // Place order
 app.post('/api/orders', authMiddleware, async (req, res) => {
   try {
-    const { scheduled_date, scheduled_time, notes, packaging, filing, dni, shipping_agency, province } = req.body;
+    const { scheduled_date, scheduled_time, notes, packaging, dni, shipping_agency, province } = req.body;
 
-    console.log('Order request received:', { scheduled_date, scheduled_time, notes, packaging, filing, dni, shipping_agency, province });
+    console.log('Order request received:', { scheduled_date, scheduled_time, notes, packaging, dni, shipping_agency, province });
 
     if (!scheduled_date) {
       return res.status(400).json({ error: 'La fecha programada es requerida' });
@@ -708,25 +708,16 @@ app.post('/api/orders', authMiddleware, async (req, res) => {
     }
     total += packagingPrice;
     
-    // Add filing price to total
-    let filingPrice = 0;
-    if (filing === 'estandar') {
-      filingPrice = 10;
-    } else if (filing === 'grande') {
-      filingPrice = 15;
-    }
-    total += filingPrice;
-    
-    console.log('Order total with packaging and filing:', { total, packaging, packagingPrice, filing, filingPrice });
+    console.log('Order total with packaging:', { total, packaging, packagingPrice });
 
     // Create order
     const orderCode = generateOrderCode();
     const user = db().prepare('SELECT * FROM users WHERE id = ?').get(req.user.id);
 
     const result = db().prepare(`
-      INSERT INTO orders (user_id, order_code, status, scheduled_date, scheduled_time, total_amount, notes, packaging, filing, dni, shipping_agency, province)
-      VALUES (?, ?, 'agendado', ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(req.user.id, orderCode, scheduled_date, scheduled_time || null, total, notes || null, packaging || null, filing || null, dni, shipping_agency, province);
+      INSERT INTO orders (user_id, order_code, status, scheduled_date, scheduled_time, total_amount, notes, packaging, dni, shipping_agency, province)
+      VALUES (?, ?, 'agendado', ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(req.user.id, orderCode, scheduled_date, scheduled_time || null, total, notes || null, packaging || null, dni, shipping_agency, province);
 
     const orderId = result.lastInsertRowid;
 
