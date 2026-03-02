@@ -722,6 +722,7 @@ app.post('/api/orders', authMiddleware, async (req, res) => {
     const orderId = result.lastInsertRowid;
 
     // Create order items and update stock
+    console.log('Creating order items for cart items:', cartItems); // Debug log
     const insertOrderItem = db().prepare(`
       INSERT INTO order_items (order_id, product_id, quantity, unit_price, subtotal)
       VALUES (?, ?, ?, ?, ?)
