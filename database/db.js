@@ -126,6 +126,7 @@ async function initDatabase() {
       scheduled_time TIME,
       total_amount REAL NOT NULL,
       notes TEXT,
+      packaging TEXT,
       dni TEXT,
       shipping_agency TEXT,
       province TEXT,

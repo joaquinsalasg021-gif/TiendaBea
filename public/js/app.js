@@ -650,13 +650,17 @@ const CartPage = {
         return;
       }
       
+      // Get packaging value
+      const packaging = document.getElementById('packaging').value;
+      
       try {
         const result = await api.post('/orders', {
           scheduled_date: scheduledDate,
           dni,
           shipping_agency: shippingAgency,
           province,
-          notes
+          notes,
+          packaging
         });
         
         // Clear cart UI

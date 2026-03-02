@@ -666,7 +666,7 @@ app.delete('/api/cart/clear', authMiddleware, (req, res) => {
 // Place order
 app.post('/api/orders', authMiddleware, async (req, res) => {
   try {
-    const { scheduled_date, scheduled_time, notes, dni, shipping_agency, province } = req.body;
+    const { scheduled_date, scheduled_time, notes, packaging, dni, shipping_agency, province } = req.body;
 
     console.log('Order request received:', { scheduled_date, scheduled_time, notes, dni, shipping_agency, province });
 
@@ -704,9 +704,9 @@ app.post('/api/orders', authMiddleware, async (req, res) => {
     const user = db().prepare('SELECT * FROM users WHERE id = ?').get(req.user.id);
 
     const result = db().prepare(`
-      INSERT INTO orders (user_id, order_code, status, scheduled_date, scheduled_time, total_amount, notes, dni, shipping_agency, province)
-      VALUES (?, ?, 'agendado', ?, ?, ?, ?, ?, ?, ?)
-    `).run(req.user.id, orderCode, scheduled_date, scheduled_time || null, total, notes || null, dni, shipping_agency, province);
+      INSERT INTO orders (user_id, order_code, status, scheduled_date, scheduled_time, total_amount, notes, packaging, dni, shipping_agency, province)
+      VALUES (?, ?, 'agendado', ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(req.user.id, orderCode, scheduled_date, scheduled_time || null, total, notes || null, packaging || null, dni, shipping_agency, province);
 
     const orderId = result.lastInsertRowid;
 
