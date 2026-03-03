@@ -461,13 +461,30 @@ const CartPage = {
       return;
     }
     
-    let html = '<table class="admin-table mt-2"><thead><tr><th>Código</th><th>Fecha</th><th>Total</th><th>Estado</th><th>WhatsApp</th><th>Detalles</th><th>Guía</th></tr></thead><tbody>';
+    let html = '<table class="admin-table mt-2"><thead><tr><th>Código</th><th>Fecha</th><th>Total</th><th>Expira</th><th>Estado</th><th>WhatsApp</th><th>Detalles</th><th>Guía</th></tr></thead><tbody>';
     
     orders.slice(0, 5).forEach(order => {
       const statusLabel = order.status === 'agendado' ? 'Agendado' :
                         order.status === 'en_proceso' ? 'En proceso' : 'Enviado';
       const statusClass = order.status === 'agendado' ? 'status-agendado' :
                         order.status === 'en_proceso' ? 'status-en-proceso' : 'status-enviado';
+      
+      let countdownHtml = '-';
+      if (order.status === 'agendado') {
+        const createdAt = new Date(order.created_at).getTime();
+        const expiresAt = createdAt + (72 * 60 * 60 * 1000); // 72 hours
+        const now = Date.now();
+        const remaining = expiresAt - now;
+        
+        if (remaining > 0) {
+          const hours = Math.floor(remaining / (1000 * 60 * 60));
+          const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+          countdownHtml = `<span class="countdown">${hours}h ${minutes}m</span>`;
+        } else {
+          countdownHtml = `<span class="countdown expired">Expirado</span>`;
+        }
+      }
+      
       const orderName = order.name || '';
       const orderLastname = order.lastname || '';
       const orderPhone = order.phone || '';
@@ -483,6 +500,7 @@ const CartPage = {
           <td>${order.order_code}</td>
           <td>${UI.formatDateTime(order.scheduled_date, order.scheduled_time)}</td>
           <td>${UI.formatPrice(order.total_amount)}</td>
+          <td>${countdownHtml}</td>
           <td><span class="order-status ${statusClass}">${statusLabel}</span></td>
           <td><button onclick="openWhatsApp('${order.order_code}', '${orderName}', '${orderLastname}', '${orderDate}', '${orderTime}', '${orderPhone}', '${orderDni}', '${orderShipping}', '${orderProvince}', '${orderPackaging}')" class="btn btn-sm btn-success" title="Enviar por WhatsApp">📲 WhatsApp</button></td>
           <td><a href="/orders.html?id=${order.id}" class="btn btn-sm btn-primary">Ver</a></td>
@@ -791,13 +809,30 @@ const OrdersPage = {
       return;
     }
     
-    let html = '<table class="admin-table mt-2"><thead><tr><th>Código</th><th>Fecha</th><th>Total</th><th>Estado</th><th>WhatsApp</th><th>Detalles</th><th>Guía</th></tr></thead><tbody>';
+    let html = '<table class="admin-table mt-2"><thead><tr><th>Código</th><th>Fecha</th><th>Total</th><th>Expira</th><th>Estado</th><th>WhatsApp</th><th>Detalles</th><th>Guía</th></tr></thead><tbody>';
     
     orders.forEach(order => {
       const statusLabel = order.status === 'agendado' ? 'Agendado' :
                         order.status === 'en_proceso' ? 'En proceso' : 'Enviado';
       const statusClass = order.status === 'agendado' ? 'status-agendado' :
                         order.status === 'en_proceso' ? 'status-en-proceso' : 'status-enviado';
+      
+      let countdownHtml = '-';
+      if (order.status === 'agendado') {
+        const createdAt = new Date(order.created_at).getTime();
+        const expiresAt = createdAt + (72 * 60 * 60 * 1000); // 72 hours
+        const now = Date.now();
+        const remaining = expiresAt - now;
+        
+        if (remaining > 0) {
+          const hours = Math.floor(remaining / (1000 * 60 * 60));
+          const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+          countdownHtml = `<span class="countdown">${hours}h ${minutes}m</span>`;
+        } else {
+          countdownHtml = `<span class="countdown expired">Expirado</span>`;
+        }
+      }
+      
       const orderName = order.name || '';
       const orderLastname = order.lastname || '';
       const orderPhone = order.phone || '';
@@ -813,6 +848,7 @@ const OrdersPage = {
           <td>${order.order_code}</td>
           <td>${UI.formatDateTime(order.scheduled_date, order.scheduled_time)}</td>
           <td>${UI.formatPrice(order.total_amount)}</td>
+          <td>${countdownHtml}</td>
           <td><span class="order-status ${statusClass}">${statusLabel}</span></td>
           <td><button onclick="openWhatsApp('${order.order_code}', '${orderName}', '${orderLastname}', '${orderDate}', '${orderTime}', '${orderPhone}', '${orderDni}', '${orderShipping}', '${orderProvince}', '${orderPackaging}')" class="btn btn-sm btn-success" title="Enviar por WhatsApp">📲 WhatsApp</button></td>
           <td><a href="/orders.html?id=${order.id}" class="btn btn-sm btn-primary">Ver</a></td>
@@ -1022,6 +1058,7 @@ const AdminPage = {
             <th>Cliente</th>
             <th>Total</th>
             <th>Fecha</th>
+            <th>Expira</th>
             <th>Estado</th>
             <th>Acciones</th>
           </tr>
@@ -1033,7 +1070,7 @@ const AdminPage = {
       let countdownHtml = '-';
       if (order.status === 'agendado') {
         const createdAt = new Date(order.created_at).getTime();
-        const expiresAt = createdAt + (48 * 60 * 60 * 1000);
+        const expiresAt = createdAt + (72 * 60 * 60 * 1000); // 72 hours
         const now = Date.now();
         const remaining = expiresAt - now;
         
@@ -1052,6 +1089,7 @@ const AdminPage = {
           <td>${order.name} ${order.lastname}</td>
           <td>${UI.formatPrice(order.total_amount)}</td>
           <td>${UI.formatDateTime(order.scheduled_date, order.scheduled_time)}</td>
+          <td>${countdownHtml}</td>
           <td>
             <select onchange="AdminPage.updateOrderStatus(${order.id}, this.value)" class="form-select" style="width: auto;">
               <option value="agendado" ${order.status === 'agendado' ? 'selected' : ''}>Agendado</option>
