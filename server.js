@@ -719,7 +719,10 @@ app.post('/api/orders', authMiddleware, async (req, res) => {
       VALUES (?, ?, 'agendado', ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(req.user.id, orderCode, scheduled_date, scheduled_time || null, total, notes || null, packaging || null, dni, shipping_agency, province);
 
-    const orderId = result.lastInsertRowid;
+    // Get order ID using order code (more reliable than lastInsertRowid)
+    const orderData = db().prepare('SELECT id FROM orders WHERE order_code = ?').get(orderCode);
+    const orderId = orderData.id;
+    console.log('Order ID:', orderId);
 
     // Create order items and update stock
     console.log('Creating order items for cart items:', cartItems); // Debug log
