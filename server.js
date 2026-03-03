@@ -180,8 +180,10 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    // Skip email verification check for owner and admin (can login without verifying)
-    // Only regular users need to verify if needed
+    // Check if email is verified - all users including owner need to verify
+    if (user.email_verified === 0) {
+      return res.status(403).json({ error: 'Confirma tu correo para ingresar', unverified: true });
+    }
 
     const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
 

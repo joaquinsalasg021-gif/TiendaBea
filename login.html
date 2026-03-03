@@ -95,11 +95,11 @@
                                   data.user.role === 'admin' ? '/admin' : '/';
         } else {
           // Check if email is not verified
-          if (data.email_verified === false) {
+          if (data.unverified === true) {
             document.getElementById('not-verified-alert').style.display = 'block';
             document.getElementById('verification-email-text').textContent = 
-              'Te hemos enviado un correo a: ' + data.email;
-            document.getElementById('not-verified-alert').dataset.email = data.email;
+              'Ingresa tu correo para recibir un nuevo enlace';
+            document.getElementById('not-verified-alert').dataset.email = username;
           } else {
             alert(data.error || 'Error al iniciar sesión');
           }
