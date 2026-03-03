@@ -1261,28 +1261,28 @@ async function startServer() {
     // Force reseed to ensure products exist
     forceReseed();
     
-    // Auto-delete orders in 'registered' status for more than 48 hours
+    // Auto-delete orders in 'agendado' status for more than 72 hours (3 days)
     setInterval(() => {
       try {
-        const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+        const seventyTwoHoursAgo = new Date(Date.now() - 72 * 60 * 60 * 1000).toISOString();
         
-        // Get old orders
+        // Get old orders in 'agendado' status
         const oldOrders = db().prepare(
-          "SELECT id FROM orders WHERE status = 'registered' AND created_at < ?"
-        ).all(fortyEightHoursAgo);
+          "SELECT id FROM orders WHERE status = 'agendado' AND created_at < ?"
+        ).all(seventyTwoHoursAgo);
         
         // Delete order items first
         oldOrders.forEach(order => {
           db().prepare('DELETE FROM order_items WHERE order_id = ?').run(order.id);
         });
         
-        // Delete orders in 'en_proceso' status older than 48 hours
+        // Delete orders in 'agendado' status older than 72 hours
         const result = db().prepare(
-          "DELETE FROM orders WHERE status = 'en_proceso' AND created_at < ?"
-        ).run(fortyEightHoursAgo);
+          "DELETE FROM orders WHERE status = 'agendado' AND created_at < ?"
+        ).run(seventyTwoHoursAgo);
         
         if (result.changes > 0) {
-          console.log(`Auto-deleted ${result.changes} orders older than 48 hours`);
+          console.log(`Auto-deleted ${result.changes} agendado orders older than 72 hours`);
         }
       } catch (error) {
         console.error('Auto-delete orders error:', error);
