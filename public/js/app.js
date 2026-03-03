@@ -591,12 +591,12 @@ const CartPage = {
     }
   },
   
-  showWhatsappModal: (orderCode, name, lastname, phone, dni, shippingAgency, province, scheduledDate, scheduledTime) => {
+  showWhatsappModal: (orderCode, name, lastname, phone, dni, shippingAgency, province, scheduledDate, scheduledTime, packaging) => {
     // Show payment modal with bank details
-    CartPage.showPaymentModal(orderCode);
+    CartPage.showPaymentModal(orderCode, scheduledDate, scheduledTime, phone, dni, shippingAgency, province, packaging);
   },
   
-  showPaymentModal: (orderCode) => {
+  showPaymentModal: (orderCode, scheduledDate, scheduledTime, phone, dni, shippingAgency, province, packaging) => {
     const modal = document.getElementById('payment-modal');
     const codeEl = document.getElementById('payment-order-code');
     const copyBtn = document.getElementById('payment-copy-btn');
@@ -616,14 +616,20 @@ const CartPage = {
       }
     };
     
-    // WhatsApp voucher button
+    // WhatsApp voucher button with full message
     whatsBtn.onclick = () => {
-      const user = Auth.getUser();
-      const userName = user?.name || '';
-      const userLastname = user?.lastname || '';
-      const msg = `🛒 Pedido Agendado - Bea Mayorista\n` +
-        `Código de Pedido: ${orderCode}\n\n` +
-        `¡Gracias por la atención! Quedo a la espera de la confirmación. 🙏`;
+      const timeStr = scheduledTime ? ` a las ${scheduledTime}` : '';
+      const packagingStr = packaging ? (packaging === 'estandar' ? 'Estándar (S/10)' : packaging === 'grande' ? 'Grande (S/15)' : '') : '';
+      const packagingMsg = packagingStr ? `📦 Embalaje: ${packagingStr}\n` : '';
+      const msg = `🛒 Pedido - Bea Mayorista\n` +
+        `Código: ${orderCode}\n` +
+        `Fecha: ${scheduledDate || 'No especificada'}${timeStr}\n\n` +
+        `📱 Teléfono: ${phone || 'No proporcionado'}\n` +
+        `🆔 DNI: ${dni || 'No proporcionado'}\n\n` +
+        `🚚 Agencia: ${shippingAgency || 'No proporcionada'}\n` +
+        `📍 Provincia: ${province || 'No proporcionada'}\n\n` +
+        packagingMsg +
+        `¡Gracias! 🙏`;
       const url = `https://wa.me/970859256?text=${encodeURIComponent(msg)}`;
       window.location.href = url;
     };
@@ -746,7 +752,8 @@ const CartPage = {
         const orderProvince = order.province || '';
         const orderDate = order.scheduled_date || '';
         const orderTime = order.scheduled_time || '';
-        CartPage.showWhatsappModal(orderCode, userName, userLastname, userPhone, orderDni, orderShipping, orderProvince, orderDate, orderTime);
+        const orderPackaging = order.packaging || '';
+        CartPage.showWhatsappModal(orderCode, userName, userLastname, userPhone, orderDni, orderShipping, orderProvince, orderDate, orderTime, orderPackaging);
       } catch (e) {
         UI.showToast(e.message, 'error');
       }
