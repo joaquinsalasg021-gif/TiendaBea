@@ -969,16 +969,25 @@ app.post('/api/admin/create-admin', authMiddleware, requireRole('owner'), async 
     const hashedPassword = await bcrypt.hash(password, 10);
     const userCode = generateUserCode();
     
-    // Generate verification token
-    const crypto = require('crypto');
-    const verificationToken = crypto.randomBytes(32).toString('hex');
-    const tokenHash = crypto.createHash('sha256').update(verificationToken).digest('hex');
-    const tokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    // Check if email is provided and is not a local placeholder
+    const isLocalEmail = adminEmail.endsWith('@tiendabea.local');
+    let emailVerified = 1;
+    let tokenHash = null;
+    let tokenExpires = null;
+    
+    // Only require verification if a real email is provided
+    if (!isLocalEmail && email) {
+      const crypto = require('crypto');
+      const verificationToken = crypto.randomBytes(32).toString('hex');
+      tokenHash = crypto.createHash('sha256').update(verificationToken).digest('hex');
+      tokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+      emailVerified = 0;
+    }
 
     const result = db().prepare(`
       INSERT INTO users (username, email, password, name, lastname, phone, role, user_code, email_verified, email_verification_token_hash, email_verification_expires)
-      VALUES (?, ?, ?, ?, ?, ?, 'admin', ?, 0, ?, ?)
-    `).run(username, adminEmail, hashedPassword, name, lastname, phone || null, userCode, tokenHash, tokenExpires);
+      VALUES (?, ?, ?, ?, ?, ?, 'admin', ?, ?, ?, ?)
+    `).run(username, adminEmail, hashedPassword, name, lastname, phone || null, userCode, emailVerified, tokenHash, tokenExpires);
 
     // Send notification to owner email about new admin
     const ownerEmail = process.env.OWNER_EMAIL || 'joaquinsalasg021@gmail.com';
@@ -994,7 +1003,7 @@ app.post('/api/admin/create-admin', authMiddleware, requireRole('owner'), async 
           <li><strong>Correo:</strong> ${adminEmail}</li>
           <li><strong>Código:</strong> ${userCode}</li>
         </ul>
-        <p>El administrador deberá verificar su correo para poder iniciar sesión.</p>
+        ${emailVerified === 0 ? '<p>El administrador deberá verificar su correo para poder iniciar sesión.</p>' : ''}
       </div>
     `;
     
