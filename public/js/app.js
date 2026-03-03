@@ -33,8 +33,16 @@ function toggleSidebar() {
 function openWhatsApp(orderCode, name, lastname, scheduledDate, scheduledTime, phone, dni, shippingAgency, province, packaging) {
   const timeStr = scheduledTime ? ` a las ${scheduledTime}` : '';
   const packagingStr = packaging ? (packaging === 'estandar' ? 'Estándar (S/10)' : packaging === 'grande' ? 'Grande (S/15)' : '') : '';
-  const packagingMsg = packagingStr ? `. Mi embalaje es ${packagingStr}` : '';
-  const msg = `Hola Bea, soy ${name} ${lastname}. He agendado un pedido con el código ${orderCode} para el ${scheduledDate}${timeStr}. Mi número es ${phone || 'No proporcionado'} y mi DNI es ${dni || 'No proporcionado'}. Mi agencia de envío es ${shippingAgency || 'No proporcionada'} y la provincia de destino es ${province || 'No proporcionada'}${packagingMsg}.`;
+  const packagingMsg = packagingStr ? `📦 Embalaje: ${packagingStr}\n` : '';
+  const msg = `🛒 Pedido - Bea Mayorista\n` +
+    `Código: ${orderCode}\n` +
+    `Fecha: ${scheduledDate}${timeStr}\n\n` +
+    `📱 Teléfono: ${phone || 'No proporcionado'}\n` +
+    `🆔 DNI: ${dni || 'No proporcionado'}\n\n` +
+    `🚚 Agencia: ${shippingAgency || 'No proporcionada'}\n` +
+    `📍 Provincia: ${province || 'No proporcionada'}\n\n` +
+    packagingMsg +
+    `¡Gracias! 🙏`;
   const url = `https://wa.me/970859256?text=${encodeURIComponent(msg)}`;
   window.location.href = url;
 }
@@ -613,7 +621,9 @@ const CartPage = {
       const user = Auth.getUser();
       const userName = user?.name || '';
       const userLastname = user?.lastname || '';
-      const msg = `Buenas Bea, soy ${userName} ${userLastname}. Agendé el pedido ${orderCode}. Adjuntaré mi voucher.`;
+      const msg = `🛒 Pedido Agendado - Bea Mayorista\n` +
+        `Código de Pedido: ${orderCode}\n\n` +
+        `¡Gracias por la atención! Quedo a la espera de la confirmación. 🙏`;
       const url = `https://wa.me/970859256?text=${encodeURIComponent(msg)}`;
       window.location.href = url;
     };
