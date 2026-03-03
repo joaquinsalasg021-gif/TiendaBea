@@ -712,13 +712,15 @@ const CartPage = {
         
         const scheduledTime = order.scheduled_time ?? 'No especificada';
         const packagingText = order.packaging ? (order.packaging === 'estandar' ? 'Estándar (S/10)' : order.packaging === 'grande' ? 'Grande (S/15)' : 'No seleccionado') : 'No seleccionado';
-        const message = `Buenas Bea, soy ${order.name} ${order.lastname}.\n` +
-          `Agendé un pedido con el código ${order.order_code} para la fecha ${order.scheduled_date} a las ${scheduledTime}.\n` +
-          `Mi número es: ${userPhone}\n` +
-          `Mi DNI es: ${order.dni}\n` +
-          `Agencia de envío: ${order.shipping_agency}\n` +
-          `Provincia de destino: ${order.province}\n` +
-          `Embalaje: ${packagingText}`;
+        const message = `🛒 Pedido Agendado - Bea Mayorista\n` +
+          `Código de Pedido: ${order.order_code}\n` +
+          `Fecha de Entrega: ${order.scheduled_date} a las ${scheduledTime}\n\n` +
+          `📱 Mi Número de Contacto: ${userPhone}\n` +
+          `🆔 Mi DNI: ${order.dni}\n\n` +
+          `🚚 Agencia de Envío: ${order.shipping_agency}\n` +
+          `📍 Provincia de Destino: ${order.province}\n\n` +
+          `📦 Embalaje Seleccionado: ${packagingText}\n\n` +
+          `¡Gracias por la atención! Quedo a la espera de la confirmación. 🙏`;
         
         const STORE_PHONE = '970859256';
         const whatsappUrl = `https://wa.me/${STORE_PHONE}?text=${encodeURIComponent(message)}`;
