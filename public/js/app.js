@@ -1171,16 +1171,21 @@ const AdminPage = {
   editProduct: async (productId) => {
     // Decode the product ID in case it's encoded
     const decodedId = decodeURIComponent(productId);
+    console.log('Editing product:', decodedId);
+    console.log('AdminProductModal available:', typeof AdminProductModal !== 'undefined');
     // Open the admin product modal directly
     if (typeof AdminProductModal !== 'undefined') {
       try {
         const product = await api.get(`/products/${decodedId}`);
+        console.log('Product loaded:', product);
         AdminProductModal.open(product);
       } catch (e) {
-        UI.showToast('Error loading product', 'error');
+        console.error('Error loading product:', e);
+        UI.showToast('Error loading product: ' + e.message, 'error');
       }
     } else {
       // Fallback to product page
+      console.log('AdminProductModal not found, redirecting to product page');
       window.location.href = `/product?id=${decodedId}&edit=true`;
     }
   },
