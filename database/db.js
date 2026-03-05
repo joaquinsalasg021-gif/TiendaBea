@@ -91,7 +91,7 @@ async function initDatabase() {
   
   db.run(`
     CREATE TABLE IF NOT EXISTS products (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
       description TEXT,
       price REAL NOT NULL,
@@ -108,7 +108,7 @@ async function initDatabase() {
     CREATE TABLE IF NOT EXISTS cart_items (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id INTEGER NOT NULL,
-      product_id INTEGER NOT NULL,
+      product_id TEXT NOT NULL,
       quantity INTEGER DEFAULT 1,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (user_id) REFERENCES users(id),
@@ -141,7 +141,7 @@ async function initDatabase() {
     CREATE TABLE IF NOT EXISTS order_items (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       order_id INTEGER NOT NULL,
-      product_id INTEGER NOT NULL,
+      product_id TEXT NOT NULL,
       quantity INTEGER NOT NULL,
       unit_price REAL NOT NULL,
       subtotal REAL NOT NULL,
@@ -344,6 +344,21 @@ function createOwner() {
     console.log('Orders status migration completed.');
   } catch (e) {
     console.log('Orders table may not exist yet or migration not needed.');
+  }
+  
+  // Migrate products table - convert integer IDs to text for alphanumeric IDs
+  try {
+    // Check if products table exists and has data
+    const products = db.exec("SELECT id FROM products WHERE typeof(id) = 'integer'");
+    if (products.length > 0 && products[0].values.length > 0) {
+      // Convert integer IDs to text strings
+      db.run("UPDATE products SET id = CAST(id AS TEXT) WHERE typeof(id) = 'integer'");
+      db.run("UPDATE cart_items SET product_id = CAST(product_id AS TEXT) WHERE typeof(product_id) = 'integer'");
+      db.run("UPDATE order_items SET product_id = CAST(product_id AS TEXT) WHERE typeof(product_id) = 'integer'");
+      console.log('Products ID migration to TEXT completed.');
+    }
+  } catch (e) {
+    console.log('Products ID migration:', e.message);
   }
   
   // Save database
