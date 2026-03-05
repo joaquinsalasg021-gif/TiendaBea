@@ -172,6 +172,9 @@ async function initDatabase() {
   // Seed default settings
   db.run("INSERT OR IGNORE INTO settings (key, value) VALUES ('store_name', 'TiendaBea')");
   db.run("INSERT OR IGNORE INTO settings (key, value) VALUES ('store_phone', '')");
+  db.run("INSERT OR IGNORE INTO settings (key, value) VALUES ('social_tiktok', '')");
+  db.run("INSERT OR IGNORE INTO settings (key, value) VALUES ('social_facebook', '')");
+  db.run("INSERT OR IGNORE INTO settings (key, value) VALUES ('social_instagram', '')");
   db.run("INSERT OR IGNORE INTO settings (key, value) VALUES ('owner_created', 'false')");
   
   // Seed sample products for testing
