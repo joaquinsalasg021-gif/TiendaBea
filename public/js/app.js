@@ -1195,12 +1195,14 @@ const AdminPage = {
     
     // Decode the product ID in case it's encoded
     const decodedId = decodeURIComponent(productId);
+    console.log('Deleting product:', decodedId);
     
     try {
       await api.delete(`/products/${decodedId}`);
       UI.showToast('Producto eliminado');
       AdminPage.loadProducts();
     } catch (e) {
+      console.error('Error deleting product:', e);
       UI.showToast(e.message, 'error');
     }
     }
