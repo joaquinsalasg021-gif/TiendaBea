@@ -39,7 +39,15 @@
         
         <div class="form-group">
           <label class="form-label" for="password">Contraseña</label>
-          <input type="password" id="password" class="form-input" required>
+          <div style="position: relative;">
+            <input type="password" id="password" class="form-input" required style="padding-right: 40px;">
+            <button type="button" onclick="togglePassword()" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #666; font-size: 18px;">👁️</button>
+          </div>
+        </div>
+        
+        <div class="form-group" style="display: flex; align-items: center; gap: 10px;">
+          <input type="checkbox" id="remember" style="width: auto; margin: 0;">
+          <label for="remember" style="margin: 0; font-weight: normal; cursor: pointer;">Guardar sesión</label>
         </div>
         
         <button type="submit" class="btn btn-primary" style="width: 100%;">Iniciar Sesión</button>
@@ -71,6 +79,22 @@
       errorDiv.style.display = 'block';
     }
     
+    // Toggle password visibility
+    function togglePassword() {
+      const passwordInput = document.getElementById('password');
+      if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+      } else {
+        passwordInput.type = 'password';
+      }
+    }
+    
+    // Check for saved credentials
+    const savedUsername = localStorage.getItem('savedUsername');
+    const savedPassword = localStorage.getItem('savedPassword');
+    if (savedUsername) document.getElementById('username').value = savedUsername;
+    if (savedPassword) document.getElementById('password').value = savedPassword;
+    
     // Handle login form submission
     document.getElementById('login-form').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -88,6 +112,16 @@
         const data = await response.json();
         
         if (response.ok) {
+          // Handle remember me
+          const remember = document.getElementById('remember').checked;
+          if (remember) {
+            localStorage.setItem('savedUsername', username);
+            localStorage.setItem('savedPassword', password);
+          } else {
+            localStorage.removeItem('savedUsername');
+            localStorage.removeItem('savedPassword');
+          }
+          
           // Store token and redirect
           localStorage.setItem('token', data.token);
           localStorage.setItem('user', JSON.stringify(data.user));
