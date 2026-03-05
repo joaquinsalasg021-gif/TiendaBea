@@ -1169,29 +1169,35 @@ const AdminPage = {
   },
   
   editProduct: async (productId) => {
+    // Decode the product ID in case it's encoded
+    const decodedId = decodeURIComponent(productId);
     // Open the admin product modal directly
     if (typeof AdminProductModal !== 'undefined') {
       try {
-        const product = await api.get(`/products/${productId}`);
+        const product = await api.get(`/products/${decodedId}`);
         AdminProductModal.open(product);
       } catch (e) {
         UI.showToast('Error loading product', 'error');
       }
     } else {
       // Fallback to product page
-      window.location.href = `/product?id=${productId}&edit=true`;
+      window.location.href = `/product?id=${decodedId}&edit=true`;
     }
   },
   
   deleteProduct: async (productId) => {
     if (!confirm('¿Estás seguro de que deseas eliminar este producto?')) return;
     
+    // Decode the product ID in case it's encoded
+    const decodedId = decodeURIComponent(productId);
+    
     try {
-      await api.delete(`/products/${productId}`);
+      await api.delete(`/products/${decodedId}`);
       UI.showToast('Producto eliminado');
       AdminPage.loadProducts();
     } catch (e) {
       UI.showToast(e.message, 'error');
+    }
     }
   },
   
