@@ -1022,8 +1022,8 @@ const AdminPage = {
           <td>${p.stock}</td>
           <td>${p.category_name || 'N/A'}</td>
           <td class="admin-actions">
-            <button class="btn btn-sm btn-primary" onclick="AdminPage.editProduct('${p.id}')">Editar</button>
-            <button class="btn btn-sm btn-danger" onclick="AdminPage.deleteProduct('${p.id}')">Eliminar</button>
+            <button class="btn btn-sm btn-primary" onclick="AdminPage.editProduct(${p.id})">Editar</button>
+            <button class="btn btn-sm btn-danger" onclick="AdminPage.deleteProduct(${p.id})">Eliminar</button>
           </td>
         </tr>
       `;
@@ -1169,42 +1169,29 @@ const AdminPage = {
   },
   
   editProduct: async (productId) => {
-    // Decode the product ID in case it's encoded
-    const decodedId = decodeURIComponent(productId);
-    console.log('Editing product:', decodedId);
-    console.log('AdminProductModal available:', typeof AdminProductModal !== 'undefined');
     // Open the admin product modal directly
     if (typeof AdminProductModal !== 'undefined') {
       try {
-        const product = await api.get(`/products/${decodedId}`);
-        console.log('Product loaded:', product);
+        const product = await api.get(`/products/${productId}`);
         AdminProductModal.open(product);
       } catch (e) {
-        console.error('Error loading product:', e);
-        UI.showToast('Error loading product: ' + e.message, 'error');
+        UI.showToast('Error loading product', 'error');
       }
     } else {
       // Fallback to product page
-      console.log('AdminProductModal not found, redirecting to product page');
-      window.location.href = `/product?id=${decodedId}&edit=true`;
+      window.location.href = `/product?id=${productId}&edit=true`;
     }
   },
   
   deleteProduct: async (productId) => {
     if (!confirm('¿Estás seguro de que deseas eliminar este producto?')) return;
     
-    // Decode the product ID in case it's encoded
-    const decodedId = decodeURIComponent(productId);
-    console.log('Deleting product:', decodedId);
-    
     try {
-      await api.delete(`/products/${decodedId}`);
+      await api.delete(`/products/${productId}`);
       UI.showToast('Producto eliminado');
       AdminPage.loadProducts();
     } catch (e) {
-      console.error('Error deleting product:', e);
       UI.showToast(e.message, 'error');
-    }
     }
   },
   
@@ -1426,8 +1413,8 @@ const OwnerPage = {
           <td>${p.stock}</td>
           <td>${p.category_name || 'N/A'}</td>
           <td class="admin-actions">
-            <button class="btn btn-sm btn-primary" onclick="AdminPage.editProduct('${p.id}')">Editar</button>
-            <button class="btn btn-sm btn-danger" onclick="AdminPage.deleteProduct('${p.id}')">Eliminar</button>
+            <button class="btn btn-sm btn-primary" onclick="AdminPage.editProduct(${p.id})">Editar</button>
+            <button class="btn btn-sm btn-danger" onclick="AdminPage.deleteProduct(${p.id})">Eliminar</button>
           </td>
         </tr>
       `;
@@ -1765,4 +1752,3 @@ document.addEventListener('DOMContentLoaded', () => {
       break;
   }
 });
-
