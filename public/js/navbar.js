@@ -58,6 +58,11 @@ const Navbar = {
         <div class="navbar-menu">
           ${navLinks}
         </div>
+        <div class="navbar-social">
+          <a href="https://www.tiktok.com/@beamayorista.oficial?_r=1&_t=ZS-94Rj9EvGmkX" target="_blank" title="TikTok" class="social-icon">📱</a>
+          <a href="https://www.facebook.com/beamayorista.oficial/?locale=es_LA" target="_blank" title="Facebook" class="social-icon">📘</a>
+          <a href="https://www.instagram.com/beamayorista/" target="_blank" title="Instagram" class="social-icon">📷</a>
+        </div>
         <div class="navbar-auth" id="nav-auth">
           ${authButtons}
         </div>
