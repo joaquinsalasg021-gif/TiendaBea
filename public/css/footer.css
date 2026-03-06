@@ -1,0 +1,43 @@
+/* Footer Styles */
+.site-footer {
+  background: linear-gradient(135deg, #1F2937 0%, #111827 100%);
+  color: #9CA3AF;
+  text-align: center;
+  padding: 24px 16px;
+  margin-top: auto;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.site-footer p {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+/* Make body a flex container to push footer down */
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+body[data-page="product"],
+body[data-page="cart"],
+body[data-page="tiendas"],
+body[data-page="reclamaciones"],
+body[data-page="login"],
+body[data-page="register"] {
+  min-height: 100vh;
+}
+
+.container {
+  flex: 1;
+}
+
+/* Ensure main-content fills space */
+.main-layout {
+  flex: 1;
+  display: flex;
+  min-height: calc(100vh - 200px);
+}
