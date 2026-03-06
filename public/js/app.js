@@ -1022,8 +1022,8 @@ const AdminPage = {
           <td>${p.stock}</td>
           <td>${p.category_name || 'N/A'}</td>
           <td class="admin-actions">
-            <button class="btn btn-sm btn-primary" onclick="AdminPage.editProduct(${p.id})">Editar</button>
-            <button class="btn btn-sm btn-danger" onclick="AdminPage.deleteProduct(${p.id})">Eliminar</button>
+            <button class="btn btn-sm btn-primary" onclick="AdminPage.editProduct('${p.id}')">Editar</button>
+            <button class="btn btn-sm btn-danger" onclick="AdminPage.deleteProduct('${p.id}')">Eliminar</button>
           </td>
         </tr>
       `;
@@ -1426,8 +1426,8 @@ const OwnerPage = {
           <td>${p.stock}</td>
           <td>${p.category_name || 'N/A'}</td>
           <td class="admin-actions">
-            <button class="btn btn-sm btn-primary" onclick="AdminPage.editProduct(${p.id})">Editar</button>
-            <button class="btn btn-sm btn-danger" onclick="AdminPage.deleteProduct(${p.id})">Eliminar</button>
+            <button class="btn btn-sm btn-primary" onclick="AdminPage.editProduct('${p.id}')">Editar</button>
+            <button class="btn btn-sm btn-danger" onclick="AdminPage.deleteProduct('${p.id}')">Eliminar</button>
           </td>
         </tr>
       `;
@@ -1765,3 +1765,4 @@ document.addEventListener('DOMContentLoaded', () => {
       break;
   }
 });
+
