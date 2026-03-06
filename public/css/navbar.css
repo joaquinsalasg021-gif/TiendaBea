@@ -1,0 +1,237 @@
+/* Modern Navbar Styles */
+.navbar {
+  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+  color: white;
+  padding: 0.75rem 0;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 4px 20px rgba(79, 70, 229, 0.15);
+}
+
+.navbar-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 56px;
+}
+
+/* Brand */
+.navbar-brand {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  letter-spacing: -0.5px;
+}
+
+.navbar-brand:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Menu Links */
+.navbar-menu {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.navbar-menu a {
+  color: rgba(255, 255, 255, 0.85);
+  text-decoration: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.navbar-menu a:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Cart Badge */
+.navbar-menu a.cart-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cart-badge {
+  background: #f43f5e;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 50px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  min-width: 20px;
+  text-align: center;
+}
+
+/* Social Icons in Navbar */
+.navbar-social {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.navbar-social .social-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  text-decoration: none;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.navbar-social .social-icon:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+}
+
+/* Auth Section */
+.navbar-auth {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.navbar-auth .nav-user {
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+  font-size: 0.95rem;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+}
+
+/* Buttons */
+.navbar-auth .btn {
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.navbar-auth .btn-outline {
+  background: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  color: white;
+}
+
+.navbar-auth .btn-outline:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: white;
+}
+
+.navbar-auth .btn-primary {
+  background: white;
+  border: 2px solid white;
+  color: #4f46e5;
+}
+
+.navbar-auth .btn-primary:hover {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.navbar-auth .btn-sm {
+  padding: 6px 14px;
+  font-size: 0.85rem;
+}
+
+/* Mobile Toggle */
+.navbar-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 4px;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .navbar-container {
+    flex-wrap: wrap;
+    height: auto;
+    padding: 12px 16px;
+  }
+  
+  .navbar-menu {
+    order: 3;
+    width: 100%;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    display: none;
+  }
+  
+  .navbar-menu.active {
+    display: flex;
+  }
+  
+  .navbar-menu a {
+    width: 100%;
+    text-align: center;
+    padding: 12px;
+  }
+  
+  .navbar-social {
+    order: 2;
+  }
+  
+  .navbar-auth {
+    order: 2;
+  }
+  
+  .navbar-toggle {
+    display: block;
+    order: 1;
+  }
+  
+  .navbar-brand {
+    order: 0;
+  }
+  
+  .navbar-auth {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar-container {
+    padding: 10px 12px;
+  }
+  
+  .navbar-brand {
+    font-size: 1.25rem;
+  }
+  
+  .navbar-social {
+    gap: 8px;
+  }
+  
+  .navbar-social .social-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 0.9rem;
+  }
+}
