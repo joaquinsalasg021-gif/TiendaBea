@@ -1022,8 +1022,8 @@ const AdminPage = {
           <td>${p.stock}</td>
           <td>${p.category_name || 'N/A'}</td>
           <td class="admin-actions">
-            <button class="btn btn-sm btn-primary" onclick="AdminPage.editProduct(${p.id})">Editar</button>
-            <button class="btn btn-sm btn-danger" onclick="AdminPage.deleteProduct(${p.id})">Eliminar</button>
+            <button class="btn btn-sm btn-primary" onclick="AdminPage.editProduct('${p.id}')">Editar</button>
+            <button class="btn btn-sm btn-danger" onclick="AdminPage.deleteProduct('${p.id}')">Eliminar</button>
           </td>
         </tr>
       `;
@@ -1169,6 +1169,8 @@ const AdminPage = {
   },
   
   editProduct: async (productId) => {
+    // Decode the product ID in case it was URL-encoded
+    productId = decodeURIComponent(productId);
     // Open the admin product modal directly
     if (typeof AdminProductModal !== 'undefined') {
       try {
@@ -1184,6 +1186,8 @@ const AdminPage = {
   },
   
   deleteProduct: async (productId) => {
+    // Decode the product ID in case it was URL-encoded
+    productId = decodeURIComponent(productId);
     if (!confirm('¿Estás seguro de que deseas eliminar este producto?')) return;
     
     try {
@@ -1413,8 +1417,8 @@ const OwnerPage = {
           <td>${p.stock}</td>
           <td>${p.category_name || 'N/A'}</td>
           <td class="admin-actions">
-            <button class="btn btn-sm btn-primary" onclick="AdminPage.editProduct(${p.id})">Editar</button>
-            <button class="btn btn-sm btn-danger" onclick="AdminPage.deleteProduct(${p.id})">Eliminar</button>
+            <button class="btn btn-sm btn-primary" onclick="AdminPage.editProduct('${p.id}')">Editar</button>
+            <button class="btn btn-sm btn-danger" onclick="AdminPage.deleteProduct('${p.id}')">Eliminar</button>
           </td>
         </tr>
       `;
@@ -1752,3 +1756,4 @@ document.addEventListener('DOMContentLoaded', () => {
       break;
   }
 });
+

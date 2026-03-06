@@ -442,13 +442,36 @@ app.get('/api/products/:id', (req, res) => {
 // Create product (admin/owner)
 app.post('/api/products', authMiddleware, requireRole('admin', 'owner'), upload.single('image'), (req, res) => {
   try {
-    const { name, description, price, stock, category_id } = req.body;
+    const { name, description, price, stock, category_id, id } = req.body;
 
     if (!name || !price) {
       return res.status(400).json({ error: 'Name and price are required' });
     }
 
     const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
+
+    // If custom ID is provided
+    if (id && id.trim()) {
+      // Check if ID already exists
+      const existing = db().prepare('SELECT id FROM products WHERE id = ?').get(id);
+      if (existing) {
+        return res.status(400).json({ error: 'Ya existe un producto con ese ID' });
+      }
+      
+      db().prepare(`
+        INSERT INTO products (id, name, description, price, stock, category_id, image_url)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `).run(id, name, description || null, parseFloat(price), parseInt(stock) || 0, category_id || null, imageUrl);
+
+      const product = db().prepare(`
+        SELECT p.*, c.name as category_name 
+        FROM products p 
+        LEFT JOIN categories c ON p.category_id = c.id 
+        WHERE p.id = ?
+      `).get(id);
+
+      return res.status(201).json(product);
+    }
 
     const result = db().prepare(`
       INSERT INTO products (name, description, price, stock, category_id, image_url)
@@ -473,11 +496,48 @@ app.post('/api/products', authMiddleware, requireRole('admin', 'owner'), upload.
 app.put('/api/products/:id', authMiddleware, requireRole('admin', 'owner'), upload.single('image'), (req, res) => {
   try {
     const { id } = req.params;
-    const { name, description, price, stock, category_id, is_active } = req.body;
+    const { name, description, price, stock, category_id, is_active, id: newId } = req.body;
 
     const product = db().prepare('SELECT * FROM products WHERE id = ?').get(id);
     if (!product) {
       return res.status(404).json({ error: 'Product not found' });
+    }
+
+    // Check if ID is being changed
+    if (newId && newId !== id) {
+      // Check if new ID already exists
+      const existing = db().prepare('SELECT id FROM products WHERE id = ?').get(newId);
+      if (existing) {
+        return res.status(400).json({ error: 'Ya existe un producto con ese ID' });
+      }
+      
+      // Delete old and create new
+      db().prepare('DELETE FROM products WHERE id = ?').run(id);
+      
+      const imageUrl = req.file ? `/uploads/${req.file.filename}` : product.image_url;
+      
+      db().prepare(`
+        INSERT INTO products (id, name, description, price, stock, category_id, image_url, is_active)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(
+        newId,
+        name || product.name,
+        description !== undefined ? description : product.description,
+        price ? parseFloat(price) : product.price,
+        stock !== undefined ? parseInt(stock) : product.stock,
+        category_id || product.category_id,
+        imageUrl,
+        is_active !== undefined ? (is_active ? 1 : 0) : product.is_active
+      );
+      
+      const updatedProduct = db().prepare(`
+        SELECT p.*, c.name as category_name 
+        FROM products p 
+        LEFT JOIN categories c ON p.category_id = c.id 
+        WHERE p.id = ?
+      `).get(newId);
+
+      return res.json(updatedProduct);
     }
 
     const imageUrl = req.file ? `/uploads/${req.file.filename}` : product.image_url;
