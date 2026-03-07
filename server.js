@@ -451,6 +451,12 @@ app.post('/api/products', authMiddleware, requireRole('admin', 'owner'), upload.
 
     const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
 
+    // Calculate stock distribution across locations
+    const totalStock = parseInt(stock) || 0;
+    const stockManchay = Math.floor(totalStock / 3);
+    const stockSantaAnita = Math.floor(totalStock / 3);
+    const stockAlmacen = totalStock - stockManchay - stockSantaAnita;
+
     // If custom ID is provided
     if (id && id.trim()) {
       // Check if ID already exists
@@ -460,9 +466,9 @@ app.post('/api/products', authMiddleware, requireRole('admin', 'owner'), upload.
       }
       
       db().prepare(`
-        INSERT INTO products (id, name, description, price, stock, category_id, image_url)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-      `).run(id, name, description || null, parseFloat(price), parseInt(stock) || 0, category_id || null, imageUrl);
+        INSERT INTO products (id, name, description, price, stock, stock_manchay, stock_santa_anita, stock_almacen, category_id, image_url)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(id, name, description || null, parseFloat(price), totalStock, stockManchay, stockSantaAnita, stockAlmacen, category_id || null, imageUrl);
 
       const product = db().prepare(`
         SELECT p.*, c.name as category_name 
@@ -475,9 +481,19 @@ app.post('/api/products', authMiddleware, requireRole('admin', 'owner'), upload.
     }
 
     const result = db().prepare(`
-      INSERT INTO products (name, description, price, stock, category_id, image_url)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `).run(name, description || null, parseFloat(price), parseInt(stock) || 0, category_id || null, imageUrl);
+      INSERT INTO products (name, description, price, stock, stock_manchay, stock_santa_anita, stock_almacen, category_id, image_url)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      name, 
+      description || null, 
+      parseFloat(price), 
+      totalStock, 
+      stockManchay, 
+      stockSantaAnita, 
+      stockAlmacen, 
+      category_id || null, 
+      imageUrl
+    );
 
     const product = db().prepare(`
       SELECT p.*, c.name as category_name 
@@ -516,16 +532,25 @@ app.put('/api/products/:id', authMiddleware, requireRole('admin', 'owner'), uplo
       db().prepare('DELETE FROM products WHERE id = ?').run(id);
       
       const imageUrl = req.file ? `/uploads/${req.file.filename}` : product.image_url;
+      const newTotalStock = stock !== undefined ? parseInt(stock) : product.stock;
+      
+      // Calculate stock distribution
+      const stockManchay = Math.floor(newTotalStock / 3);
+      const stockSantaAnita = Math.floor(newTotalStock / 3);
+      const stockAlmacen = newTotalStock - stockManchay - stockSantaAnita;
       
       db().prepare(`
-        INSERT INTO products (id, name, description, price, stock, category_id, image_url, is_active)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO products (id, name, description, price, stock, stock_manchay, stock_santa_anita, stock_almacen, category_id, image_url, is_active)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `).run(
         newId,
         name || product.name,
         description !== undefined ? description : product.description,
         price ? parseFloat(price) : product.price,
-        stock !== undefined ? parseInt(stock) : product.stock,
+        newTotalStock,
+        stockManchay,
+        stockSantaAnita,
+        stockAlmacen,
         category_id || product.category_id,
         imageUrl,
         is_active !== undefined ? (is_active ? 1 : 0) : product.is_active
@@ -543,15 +568,30 @@ app.put('/api/products/:id', authMiddleware, requireRole('admin', 'owner'), uplo
 
     const imageUrl = req.file ? `/uploads/${req.file.filename}` : product.image_url;
 
+    // Calculate stock distribution if total stock is being updated
+    let newStockManchay = product.stock_manchay;
+    let newStockSantaAnita = product.stock_santa_anita;
+    let newStockAlmacen = product.stock_almacen;
+    
+    if (stock !== undefined) {
+      const newTotalStock = parseInt(stock);
+      newStockManchay = Math.floor(newTotalStock / 3);
+      newStockSantaAnita = Math.floor(newTotalStock / 3);
+      newStockAlmacen = newTotalStock - newStockManchay - newStockSantaAnita;
+    }
+
     db().prepare(`
       UPDATE products 
-      SET name = ?, description = ?, price = ?, stock = ?, category_id = ?, image_url = ?, is_active = ?
+      SET name = ?, description = ?, price = ?, stock = ?, stock_manchay = ?, stock_santa_anita = ?, stock_almacen = ?, category_id = ?, image_url = ?, is_active = ?
       WHERE id = ?
     `).run(
       name || product.name,
       description !== undefined ? description : product.description,
       price ? parseFloat(price) : product.price,
       stock !== undefined ? parseInt(stock) : product.stock,
+      newStockManchay,
+      newStockSantaAnita,
+      newStockAlmacen,
       category_id || product.category_id,
       imageUrl,
       is_active !== undefined ? (is_active ? 1 : 0) : product.is_active,
