@@ -451,11 +451,12 @@ app.post('/api/products', authMiddleware, requireRole('admin', 'owner'), upload.
 
     const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
 
-    // Calculate stock distribution across locations
+    // Calculate stock distribution across locations (4 locations now)
     const totalStock = parseInt(stock) || 0;
-    const stockManchay = Math.floor(totalStock / 3);
-    const stockSantaAnita = Math.floor(totalStock / 3);
-    const stockAlmacen = totalStock - stockManchay - stockSantaAnita;
+    const stockManchay = Math.floor(totalStock / 4);
+    const stockSantaAnita = Math.floor(totalStock / 4);
+    const stockAlmacen = Math.floor(totalStock / 4);
+    const stockTienda = totalStock - stockManchay - stockSantaAnita - stockAlmacen;
 
     // If custom ID is provided
     if (id && id.trim()) {
@@ -466,9 +467,9 @@ app.post('/api/products', authMiddleware, requireRole('admin', 'owner'), upload.
       }
       
       db().prepare(`
-        INSERT INTO products (id, name, description, price, stock, stock_manchay, stock_santa_anita, stock_almacen, category_id, image_url)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `).run(id, name, description || null, parseFloat(price), totalStock, stockManchay, stockSantaAnita, stockAlmacen, category_id || null, imageUrl);
+        INSERT INTO products (id, name, description, price, stock, stock_manchay, stock_santa_anita, stock_almacen, stock_tienda, category_id, image_url)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(id, name, description || null, parseFloat(price), totalStock, stockManchay, stockSantaAnita, stockAlmacen, stockTienda, category_id || null, imageUrl);
 
       const product = db().prepare(`
         SELECT p.*, c.name as category_name 
@@ -481,8 +482,8 @@ app.post('/api/products', authMiddleware, requireRole('admin', 'owner'), upload.
     }
 
     const result = db().prepare(`
-      INSERT INTO products (name, description, price, stock, stock_manchay, stock_santa_anita, stock_almacen, category_id, image_url)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO products (name, description, price, stock, stock_manchay, stock_santa_anita, stock_almacen, stock_tienda, category_id, image_url)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       name, 
       description || null, 
@@ -490,7 +491,8 @@ app.post('/api/products', authMiddleware, requireRole('admin', 'owner'), upload.
       totalStock, 
       stockManchay, 
       stockSantaAnita, 
-      stockAlmacen, 
+      stockAlmacen,
+      stockTienda,
       category_id || null, 
       imageUrl
     );
@@ -534,14 +536,15 @@ app.put('/api/products/:id', authMiddleware, requireRole('admin', 'owner'), uplo
       const imageUrl = req.file ? `/uploads/${req.file.filename}` : product.image_url;
       const newTotalStock = stock !== undefined ? parseInt(stock) : product.stock;
       
-      // Calculate stock distribution
-      const stockManchay = Math.floor(newTotalStock / 3);
-      const stockSantaAnita = Math.floor(newTotalStock / 3);
-      const stockAlmacen = newTotalStock - stockManchay - stockSantaAnita;
+      // Calculate stock distribution (4 locations)
+      const stockManchay = Math.floor(newTotalStock / 4);
+      const stockSantaAnita = Math.floor(newTotalStock / 4);
+      const stockAlmacen = Math.floor(newTotalStock / 4);
+      const stockTienda = newTotalStock - stockManchay - stockSantaAnita - stockAlmacen;
       
       db().prepare(`
-        INSERT INTO products (id, name, description, price, stock, stock_manchay, stock_santa_anita, stock_almacen, category_id, image_url, is_active)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO products (id, name, description, price, stock, stock_manchay, stock_santa_anita, stock_almacen, stock_tienda, category_id, image_url, is_active)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `).run(
         newId,
         name || product.name,
@@ -551,6 +554,7 @@ app.put('/api/products/:id', authMiddleware, requireRole('admin', 'owner'), uplo
         stockManchay,
         stockSantaAnita,
         stockAlmacen,
+        stockTienda,
         category_id || product.category_id,
         imageUrl,
         is_active !== undefined ? (is_active ? 1 : 0) : product.is_active
@@ -568,21 +572,23 @@ app.put('/api/products/:id', authMiddleware, requireRole('admin', 'owner'), uplo
 
     const imageUrl = req.file ? `/uploads/${req.file.filename}` : product.image_url;
 
-    // Calculate stock distribution if total stock is being updated
+    // Calculate stock distribution if total stock is being updated (4 locations)
     let newStockManchay = product.stock_manchay;
     let newStockSantaAnita = product.stock_santa_anita;
     let newStockAlmacen = product.stock_almacen;
+    let newStockTienda = product.stock_tienda;
     
     if (stock !== undefined) {
       const newTotalStock = parseInt(stock);
-      newStockManchay = Math.floor(newTotalStock / 3);
-      newStockSantaAnita = Math.floor(newTotalStock / 3);
-      newStockAlmacen = newTotalStock - newStockManchay - newStockSantaAnita;
+      newStockManchay = Math.floor(newTotalStock / 4);
+      newStockSantaAnita = Math.floor(newTotalStock / 4);
+      newStockAlmacen = Math.floor(newTotalStock / 4);
+      newStockTienda = newTotalStock - newStockManchay - newStockSantaAnita - newStockAlmacen;
     }
 
     db().prepare(`
       UPDATE products 
-      SET name = ?, description = ?, price = ?, stock = ?, stock_manchay = ?, stock_santa_anita = ?, stock_almacen = ?, category_id = ?, image_url = ?, is_active = ?
+      SET name = ?, description = ?, price = ?, stock = ?, stock_manchay = ?, stock_santa_anita = ?, stock_almacen = ?, stock_tienda = ?, category_id = ?, image_url = ?, is_active = ?
       WHERE id = ?
     `).run(
       name || product.name,
@@ -592,6 +598,7 @@ app.put('/api/products/:id', authMiddleware, requireRole('admin', 'owner'), uplo
       newStockManchay,
       newStockSantaAnita,
       newStockAlmacen,
+      newStockTienda,
       category_id || product.category_id,
       imageUrl,
       is_active !== undefined ? (is_active ? 1 : 0) : product.is_active,
@@ -1189,7 +1196,7 @@ app.get('/api/dashboard/inventory', authMiddleware, requireRole('admin', 'owner'
   try {
     const products = db().prepare(`
       SELECT p.*, c.name as category_name,
-        (p.stock_manchay + p.stock_santa_anita + p.stock_almacen) as stock_total
+        (p.stock_manchay + p.stock_santa_anita + p.stock_almacen + COALESCE(p.stock_tienda, 0)) as stock_total
       FROM products p
       LEFT JOIN categories c ON p.category_id = c.id
       WHERE p.is_active = 1
@@ -1202,23 +1209,27 @@ app.get('/api/dashboard/inventory', authMiddleware, requireRole('admin', 'owner'
       manchayStock: 0,
       santaAnitaStock: 0,
       almacenStock: 0,
+      tiendaStock: 0,
       lowStock: 0,
       outOfStock: 0
     };
 
     products.forEach(p => {
-      const total = p.stock_manchay + p.stock_santa_anita + p.stock_almacen;
+      const tiendaStock = p.stock_tienda || 0;
+      const total = p.stock_manchay + p.stock_santa_anita + p.stock_almacen + tiendaStock;
       totals.totalStock += total;
       totals.manchayStock += p.stock_manchay;
       totals.santaAnitaStock += p.stock_santa_anita;
       totals.almacenStock += p.stock_almacen;
+      totals.tiendaStock += tiendaStock;
       if (total > 0 && total <= 10) totals.lowStock++;
       if (total === 0) totals.outOfStock++;
     });
 
     // Add status to each product
     const productsWithStatus = products.map(p => {
-      const total = p.stock_manchay + p.stock_santa_anita + p.stock_almacen;
+      const tiendaStock = p.stock_tienda || 0;
+      const total = p.stock_manchay + p.stock_santa_anita + p.stock_almacen + tiendaStock;
       let status = 'Normal';
       if (total === 0) status = 'Agotado';
       else if (total <= 10) status = 'Bajo stock';
@@ -1383,7 +1394,7 @@ app.post('/api/dashboard/transfer', authMiddleware, requireRole('admin', 'owner'
     }
 
     // Validate locations
-    const validLocations = ['manchay', 'santa_anita', 'almacen'];
+    const validLocations = ['manchay', 'santa_anita', 'almacen', 'tienda'];
     if (!validLocations.includes(origin) || !validLocations.includes(destination)) {
       return res.status(400).json({ error: 'Ubicación inválida' });
     }
@@ -1408,8 +1419,8 @@ app.post('/api/dashboard/transfer', authMiddleware, requireRole('admin', 'owner'
     increaseStock.run(quantity, product_id);
 
     // Record movement
-    const originLabel = origin === 'manchay' ? 'Manchay' : origin === 'santa_anita' ? 'Santa Anita' : 'Almacén';
-    const destLabel = destination === 'manchay' ? 'Manchay' : destination === 'santa_anita' ? 'Santa Anita' : 'Almacén';
+    const originLabel = origin === 'manchay' ? 'Manchay' : origin === 'santa_anita' ? 'Santa Anita' : origin === 'tienda' ? 'Tienda Web' : 'Almacén';
+    const destLabel = destination === 'manchay' ? 'Manchay' : destination === 'santa_anita' ? 'Santa Anita' : destination === 'tienda' ? 'Tienda Web' : 'Almacén';
 
     db().prepare(`
       INSERT INTO stock_movements (product_id, quantity, origin_location, destination_location, user_id, notes)
@@ -1430,8 +1441,8 @@ app.get('/api/dashboard/products', authMiddleware, requireRole('admin', 'owner')
   try {
     const products = db().prepare(`
       SELECT p.id, p.name, p.price,
-        p.stock_manchay, p.stock_santa_anita, p.stock_almacen,
-        (p.stock_manchay + p.stock_santa_anita + p.stock_almacen) as stock_total,
+        p.stock_manchay, p.stock_santa_anita, p.stock_almacen, COALESCE(p.stock_tienda, 0) as stock_tienda,
+        (p.stock_manchay + p.stock_santa_anita + p.stock_almacen + COALESCE(p.stock_tienda, 0)) as stock_total,
         c.name as category_name
       FROM products p
       LEFT JOIN categories c ON p.category_id = c.id
@@ -1450,7 +1461,7 @@ app.get('/api/dashboard/products', authMiddleware, requireRole('admin', 'owner')
 app.put('/api/dashboard/product/:id/stock', authMiddleware, requireRole('admin', 'owner'), (req, res) => {
   try {
     const { id } = req.params;
-    const { stock_manchay, stock_santa_anita, stock_almacen } = req.body;
+    const { stock_manchay, stock_santa_anita, stock_almacen, stock_tienda } = req.body;
 
     const product = db().prepare('SELECT * FROM products WHERE id = ?').get(id);
     if (!product) {
@@ -1460,13 +1471,14 @@ app.put('/api/dashboard/product/:id/stock', authMiddleware, requireRole('admin',
     const newManchay = stock_manchay !== undefined ? stock_manchay : product.stock_manchay;
     const newSantaAnita = stock_santa_anita !== undefined ? stock_santa_anita : product.stock_santa_anita;
     const newAlmacen = stock_almacen !== undefined ? stock_almacen : product.stock_almacen;
-    const newTotal = newManchay + newSantaAnita + newAlmacen;
+    const newTienda = stock_tienda !== undefined ? stock_tienda : (product.stock_tienda || 0);
+    const newTotal = newManchay + newSantaAnita + newAlmacen + newTienda;
 
     db().prepare(`
       UPDATE products 
-      SET stock_manchay = ?, stock_santa_anita = ?, stock_almacen = ?, stock = ?
+      SET stock_manchay = ?, stock_santa_anita = ?, stock_almacen = ?, stock_tienda = ?, stock = ?
       WHERE id = ?
-    `).run(newManchay, newSantaAnita, newAlmacen, newTotal, id);
+    `).run(newManchay, newSantaAnita, newAlmacen, newTienda, newTotal, id);
 
     saveDatabase();
 

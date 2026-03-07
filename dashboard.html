@@ -163,6 +163,7 @@
                   <th class="px-4 py-3 text-right font-medium text-purple-600">Manchay</th>
                   <th class="px-4 py-3 text-right font-medium text-cyan-600">Santa Anita</th>
                   <th class="px-4 py-3 text-right font-medium text-orange-600">Almacén</th>
+                  <th class="px-4 py-3 text-right font-medium text-pink-600">Tienda Web</th>
                   <th class="px-4 py-3 text-center font-medium text-gray-600">Estado</th>
                   <th class="px-4 py-3 text-center font-medium text-gray-600">Acción</th>
                 </tr>
@@ -305,6 +306,7 @@
                       <option value="manchay">Manchay</option>
                       <option value="santa_anita">Santa Anita</option>
                       <option value="almacen">Almacén</option>
+                      <option value="tienda">Tienda Web</option>
                     </select>
                   </div>
                   <div>
@@ -314,6 +316,7 @@
                       <option value="manchay">Manchay</option>
                       <option value="santa_anita">Santa Anita</option>
                       <option value="almacen">Almacén</option>
+                      <option value="tienda">Tienda Web</option>
                     </select>
                   </div>
                 </div>
@@ -353,6 +356,10 @@
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Stock Almacén</label>
             <input type="number" id="edit-stock-almacen" min="0" class="w-full border rounded-lg px-3 py-2">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Stock Tienda Web</label>
+            <input type="number" id="edit-stock-tienda" min="0" class="w-full border rounded-lg px-3 py-2">
           </div>
         </div>
         <div class="flex gap-3 mt-6">
@@ -544,6 +551,10 @@
           <p class="text-gray-500 text-sm">Almacén</p>
           <p class="text-2xl font-bold text-orange-600">${totals.almacenStock}</p>
         </div>
+        <div class="card p-4 border-l-4 border-pink-500">
+          <p class="text-gray-500 text-sm">Tienda Web</p>
+          <p class="text-2xl font-bold text-pink-600">${totals.tiendaStock || 0}</p>
+        </div>
       `;
     }
 
@@ -599,13 +610,14 @@
           <td class="px-4 py-3 text-right text-purple-600">${p.stock_manchay}</td>
           <td class="px-4 py-3 text-right text-cyan-600">${p.stock_santa_anita}</td>
           <td class="px-4 py-3 text-right text-orange-600">${p.stock_almacen}</td>
+          <td class="px-4 py-3 text-right text-pink-600">${p.stock_tienda || 0}</td>
           <td class="px-4 py-3 text-center">
             <span class="status-badge ${p.status === 'Normal' ? 'status-normal' : p.status === 'Bajo stock' ? 'status-low' : 'status-out'}">
               ${p.status}
             </span>
           </td>
           <td class="px-4 py-3 text-center">
-            <button onclick="openStockModal('${p.id}', ${p.stock_manchay}, ${p.stock_santa_anita}, ${p.stock_almacen})" 
+            <button onclick="openStockModal('${p.id}', ${p.stock_manchay}, ${p.stock_santa_anita}, ${p.stock_almacen}, ${p.stock_tienda || 0})" 
               class="text-indigo-600 hover:text-indigo-800">
               <i class="fas fa-edit"></i>
             </button>
@@ -622,10 +634,10 @@
       stockDistributionChart = new Chart(ctx1, {
         type: 'doughnut',
         data: {
-          labels: ['Manchay', 'Santa Anita', 'Almacén'],
+          labels: ['Manchay', 'Santa Anita', 'Almacén', 'Tienda Web'],
           datasets: [{
-            data: [data.totals.manchayStock, data.totals.santaAnitaStock, data.totals.almacenStock],
-            backgroundColor: ['#8b5cf6', '#06b6d4', '#f97316']
+            data: [data.totals.manchayStock, data.totals.santaAnitaStock, data.totals.almacenStock, data.totals.tiendaStock || 0],
+            backgroundColor: ['#8b5cf6', '#06b6d4', '#f97316', '#ec4899']
           }]
         },
         options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
@@ -758,11 +770,12 @@
     }
 
     // Stock Modal Functions
-    function openStockModal(productId, manchay, santa, almacen) {
+    function openStockModal(productId, manchay, santa, almacen, tienda = 0) {
       document.getElementById('edit-product-id').value = productId;
       document.getElementById('edit-stock-manchay').value = manchay;
       document.getElementById('edit-stock-santa').value = santa;
       document.getElementById('edit-stock-almacen').value = almacen;
+      document.getElementById('edit-stock-tienda').value = tienda;
       document.getElementById('stock-modal').classList.remove('hidden');
       document.getElementById('stock-modal').classList.add('flex');
     }
@@ -778,12 +791,13 @@
       const stock_manchay = parseInt(document.getElementById('edit-stock-manchay').value);
       const stock_santa_anita = parseInt(document.getElementById('edit-stock-santa').value);
       const stock_almacen = parseInt(document.getElementById('edit-stock-almacen').value);
+      const stock_tienda = parseInt(document.getElementById('edit-stock-tienda').value);
 
       try {
         const response = await fetch(`/api/dashboard/product/${productId}/stock`, {
           method: 'PUT',
           headers: { ...authHeaders(), 'Content-Type': 'application/json' },
-          body: JSON.stringify({ stock_manchay, stock_santa_anita, stock_almacen })
+          body: JSON.stringify({ stock_manchay, stock_santa_anita, stock_almacen, stock_tienda })
         });
         const data = await response.json();
         if (data.success) {
@@ -805,10 +819,11 @@
       if (product) {
         infoDiv.classList.remove('hidden');
         infoDiv.innerHTML = `
-          <div class="grid grid-cols-3 gap-2 text-center">
+          <div class="grid grid-cols-4 gap-2 text-center">
             <div><span class="text-purple-600 font-medium">Manchay:</span> ${product.stock_manchay}</div>
             <div><span class="text-cyan-600 font-medium">Santa Anita:</span> ${product.stock_santa_anita}</div>
             <div><span class="text-orange-600 font-medium">Almacén:</span> ${product.stock_almacen}</div>
+            <div><span class="text-pink-600 font-medium">Tienda:</span> ${product.stock_tienda || 0}</div>
           </div>
         `;
       } else {

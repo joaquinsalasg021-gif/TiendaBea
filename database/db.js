@@ -99,6 +99,7 @@ async function initDatabase() {
       stock_manchay INTEGER DEFAULT 0,
       stock_santa_anita INTEGER DEFAULT 0,
       stock_almacen INTEGER DEFAULT 0,
+      stock_tienda INTEGER DEFAULT 0,
       category_id INTEGER,
       image_url TEXT,
       is_active INTEGER DEFAULT 1,
@@ -385,11 +386,19 @@ function createOwner() {
         db.run("ALTER TABLE products ADD COLUMN stock_manchay INTEGER DEFAULT 0");
         db.run("ALTER TABLE products ADD COLUMN stock_santa_anita INTEGER DEFAULT 0");
         db.run("ALTER TABLE products ADD COLUMN stock_almacen INTEGER DEFAULT 0");
+        db.run("ALTER TABLE products ADD COLUMN stock_tienda INTEGER DEFAULT 0");
         
         // Distribute existing stock evenly across locations (temporary until admin sets proper values)
-        db.run("UPDATE products SET stock_manchay = stock / 3, stock_santa_anita = stock / 3, stock_almacen = stock - (stock / 3 * 2)");
+        db.run("UPDATE products SET stock_manchay = stock / 4, stock_santa_anita = stock / 4, stock_almacen = stock / 4, stock_tienda = stock - (stock / 4 * 3)");
         saveDatabase();
-        console.log('Products table migration completed - stock distributed across locations.');
+        console.log('Products table migration completed - stock distributed across 4 locations.');
+      } else if (!columnNames.includes('stock_tienda')) {
+        // Add tienda column if other columns exist
+        db.run("ALTER TABLE products ADD COLUMN stock_tienda INTEGER DEFAULT 0");
+        // Redistribute stock to include tienda
+        db.run("UPDATE products SET stock_manchay = stock / 4, stock_santa_anita = stock / 4, stock_almacen = stock / 4, stock_tienda = stock - (stock / 4 * 3)");
+        saveDatabase();
+        console.log('Added stock_tienda column and redistributed stock.');
       }
     }
   } catch (e) {
