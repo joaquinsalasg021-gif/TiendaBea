@@ -370,8 +370,14 @@
     </div>
   </div>
 
-  <script src="/public/js/navbar.js"></script>
+  <script src="/js/navbar.js"></script>
   <script>
+    // Check authentication first
+    const token = localStorage.getItem('token');
+    if (!token) {
+      window.location.href = '/login';
+    }
+    
     let currentTab = 'inventory';
     let inventoryData = null;
     let salesData = null;
