@@ -392,7 +392,7 @@ const HomePage = {
             </div>
           </a>
           <div class="product-actions">
-            <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); HomePage.addToCart(${product.id})" ${disabled}>
+            <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); HomePage.addToCart('${product.id}')" ${disabled}>
               ${product.stock === 0 ? 'Sin Stock' : 'Agregar'}
             </button>
           </div>
