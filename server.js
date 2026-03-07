@@ -46,6 +46,7 @@ app.get('/product.html', (req, res) => res.sendFile(path.join(__dirname, 'produc
 app.get('/admin-orders', (req, res) => res.sendFile(path.join(__dirname, 'admin-orders.html')));
 app.get('/financial-app', (req, res) => res.sendFile(path.join(__dirname, 'financial-app.html')));
 app.get('/tiendas', (req, res) => res.sendFile(path.join(__dirname, 'tiendas.html')));
+app.get('/dashboard', (req, res) => res.sendFile(path.join(__dirname, 'dashboard.html')));
 app.get('/reclamaciones', (req, res) => res.sendFile(path.join(__dirname, 'reclamaciones.html')));
 
 // File upload configuration
@@ -1137,6 +1138,301 @@ app.put('/api/settings', authMiddleware, requireRole('owner'), (req, res) => {
     res.json({ message: 'Settings updated' });
   } catch (error) {
     console.error('Update settings error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// ==================== DASHBOARD ROUTES ====================
+
+// Get inventory by location
+app.get('/api/dashboard/inventory', authMiddleware, requireRole('admin', 'owner'), (req, res) => {
+  try {
+    const products = db().prepare(`
+      SELECT p.*, c.name as category_name,
+        (p.stock_manchay + p.stock_santa_anita + p.stock_almacen) as stock_total
+      FROM products p
+      LEFT JOIN categories c ON p.category_id = c.id
+      WHERE p.is_active = 1
+      ORDER BY p.name ASC
+    `).all();
+
+    // Calculate totals
+    const totals = {
+      totalStock: 0,
+      manchayStock: 0,
+      santaAnitaStock: 0,
+      almacenStock: 0,
+      lowStock: 0,
+      outOfStock: 0
+    };
+
+    products.forEach(p => {
+      const total = p.stock_manchay + p.stock_santa_anita + p.stock_almacen;
+      totals.totalStock += total;
+      totals.manchayStock += p.stock_manchay;
+      totals.santaAnitaStock += p.stock_santa_anita;
+      totals.almacenStock += p.stock_almacen;
+      if (total > 0 && total <= 10) totals.lowStock++;
+      if (total === 0) totals.outOfStock++;
+    });
+
+    // Add status to each product
+    const productsWithStatus = products.map(p => {
+      const total = p.stock_manchay + p.stock_santa_anita + p.stock_almacen;
+      let status = 'Normal';
+      if (total === 0) status = 'Agotado';
+      else if (total <= 10) status = 'Bajo stock';
+      return { ...p, stock_total: total, status };
+    });
+
+    res.json({ products: productsWithStatus, totals });
+  } catch (error) {
+    console.error('Get inventory error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Get monthly sales statistics
+app.get('/api/dashboard/sales', authMiddleware, requireRole('admin', 'owner'), (req, res) => {
+  try {
+    const { month, year } = req.query;
+    const currentDate = new Date();
+    const targetMonth = month || (currentDate.getMonth() + 1);
+    const targetYear = year || currentDate.getFullYear();
+
+    // Get start and end dates for the month
+    const startDate = `${targetYear}-${String(targetMonth).padStart(2, '0')}-01`;
+    const endDate = `${targetYear}-${String(targetMonth).padStart(2, '0')}-31`;
+
+    // Get orders for the month
+    const orders = db().prepare(`
+      SELECT * FROM orders 
+      WHERE created_at >= ? AND created_at <= ?
+      ORDER BY created_at DESC
+    `).all(startDate, endDate);
+
+    // Calculate totals
+    const totalOrders = orders.length;
+    const paidOrders = orders.filter(o => o.status !== 'pendiente' && o.status !== 'cancelado').length;
+    const unpaidOrders = totalOrders - paidOrders;
+    const totalRevenue = orders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
+
+    // Get products sold
+    const orderIds = orders.map(o => o.id);
+    let productsSold = 0;
+    let productSales = [];
+
+    if (orderIds.length > 0) {
+      const placeholders = orderIds.map(() => '?').join(',');
+      const orderItems = db().prepare(`
+        SELECT product_id, SUM(quantity) as total_qty, SUM(subtotal) as total_subtotal
+        FROM order_items 
+        WHERE order_id IN (${placeholders})
+        GROUP BY product_id
+      `).all(...orderIds);
+
+      productsSold = orderItems.reduce((sum, item) => sum + item.total_qty, 0);
+
+      // Get product details
+      productSales = orderItems.map(item => {
+        const product = db().prepare('SELECT name, category_id FROM products WHERE id = ?').get(item.product_id);
+        const category = product ? db().prepare('SELECT name FROM categories WHERE id = ?').get(product.category_id) : null;
+        return {
+          product_id: item.product_id,
+          product_name: product ? product.name : 'Unknown',
+          category_name: category ? category.name : 'Sin categoría',
+          quantity_sold: item.total_qty,
+          revenue: item.total_subtotal
+        };
+      }).sort((a, b) => b.quantity_sold - a.quantity_sold);
+    }
+
+    // Get top and least sold products
+    const topProduct = productSales.length > 0 ? productSales[0] : null;
+    const leastProduct = productSales.length > 0 ? productSales[productSales.length - 1] : null;
+
+    // Get category sales
+    const categorySales = {};
+    productSales.forEach(ps => {
+      if (!categorySales[ps.category_name]) {
+        categorySales[ps.category_name] = { quantity: 0, revenue: 0 };
+      }
+      categorySales[ps.category_name].quantity += ps.quantity_sold;
+      categorySales[ps.category_name].revenue += ps.revenue;
+    });
+
+    const topCategory = Object.entries(categorySales).sort((a, b) => b[1].quantity - a[1].quantity)[0];
+    const leastCategory = Object.entries(categorySales).sort((a, b) => a[1].quantity - b[1].quantity)[0];
+
+    // Calculate daily average
+    const daysInMonth = new Date(targetYear, targetMonth, 0).getDate();
+    const today = currentDate.getMonth() + 1 === parseInt(targetMonth) ? currentDate.getDate() : daysInMonth;
+    const dailyAverage = today > 0 ? (totalRevenue / today).toFixed(2) : 0;
+
+    // Get sales by day
+    const salesByDay = {};
+    orders.forEach(order => {
+      const day = new Date(order.created_at).getDate();
+      if (!salesByDay[day]) salesByDay[day] = { orders: 0, revenue: 0 };
+      salesByDay[day].orders++;
+      salesByDay[day].revenue += order.total_amount || 0;
+    });
+
+    res.json({
+      month: targetMonth,
+      year: targetYear,
+      totalOrders,
+      paidOrders,
+      unpaidOrders,
+      totalRevenue: totalRevenue.toFixed(2),
+      productsSold,
+      topProduct,
+      leastProduct,
+      topCategory: topCategory ? { name: topCategory[0], ...topCategory[1] } : null,
+      leastCategory: leastCategory ? { name: leastCategory[0], ...leastCategory[1] } : null,
+      dailyAverage,
+      salesByDay,
+      categorySales,
+      productSales: productSales.slice(0, 10),
+      leastSoldProducts: productSales.slice(-10).reverse(),
+      recentOrders: orders.slice(0, 20)
+    });
+  } catch (error) {
+    console.error('Get sales error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Get stock movements
+app.get('/api/dashboard/movements', authMiddleware, requireRole('admin', 'owner'), (req, res) => {
+  try {
+    const { limit } = req.query;
+    const limitVal = limit || 50;
+
+    const movements = db().prepare(`
+      SELECT sm.*, p.name as product_name, u.name as user_name, u.lastname as user_lastname
+      FROM stock_movements sm
+      JOIN products p ON sm.product_id = p.id
+      JOIN users u ON sm.user_id = u.id
+      ORDER BY sm.created_at DESC
+      LIMIT ?
+    `).all(limitVal);
+
+    res.json(movements);
+  } catch (error) {
+    console.error('Get movements error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Transfer stock between locations
+app.post('/api/dashboard/transfer', authMiddleware, requireRole('admin', 'owner'), (req, res) => {
+  try {
+    const { product_id, quantity, origin, destination, notes } = req.body;
+
+    if (!product_id || !quantity || !origin || !destination) {
+      return res.status(400).json({ error: 'Faltan campos requeridos' });
+    }
+
+    if (quantity <= 0) {
+      return res.status(400).json({ error: 'La cantidad debe ser mayor a 0' });
+    }
+
+    if (origin === destination) {
+      return res.status(400).json({ error: 'Origen y destino no pueden ser iguales' });
+    }
+
+    // Validate locations
+    const validLocations = ['manchay', 'santa_anita', 'almacen'];
+    if (!validLocations.includes(origin) || !validLocations.includes(destination)) {
+      return res.status(400).json({ error: 'Ubicación inválida' });
+    }
+
+    // Get current product stock
+    const product = db().prepare('SELECT * FROM products WHERE id = ?').get(product_id);
+    if (!product) {
+      return res.status(404).json({ error: 'Producto no encontrado' });
+    }
+
+    // Check if origin has enough stock
+    const originStock = product[`stock_${origin}`];
+    if (originStock < quantity) {
+      return res.status(400).json({ error: `Stock insuficiente en origen. Stock actual: ${originStock}` });
+    }
+
+    // Update stocks
+    const decreaseStock = db().prepare(`UPDATE products SET stock_${origin} = stock_${origin} - ?, stock = stock - ? WHERE id = ?`);
+    const increaseStock = db().prepare(`UPDATE products SET stock_${destination} = stock_${destination} + ? WHERE id = ?`);
+
+    decreaseStock.run(quantity, quantity, product_id);
+    increaseStock.run(quantity, product_id);
+
+    // Record movement
+    const originLabel = origin === 'manchay' ? 'Manchay' : origin === 'santa_anita' ? 'Santa Anita' : 'Almacén';
+    const destLabel = destination === 'manchay' ? 'Manchay' : destination === 'santa_anita' ? 'Santa Anita' : 'Almacén';
+
+    db().prepare(`
+      INSERT INTO stock_movements (product_id, quantity, origin_location, destination_location, user_id, notes)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).run(product_id, quantity, originLabel, destLabel, req.user.id, notes || null);
+
+    saveDatabase();
+
+    res.json({ message: 'Transferencia exitosa', success: true });
+  } catch (error) {
+    console.error('Transfer error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Get all products for dropdown
+app.get('/api/dashboard/products', authMiddleware, requireRole('admin', 'owner'), (req, res) => {
+  try {
+    const products = db().prepare(`
+      SELECT p.id, p.name, p.price,
+        p.stock_manchay, p.stock_santa_anita, p.stock_almacen,
+        (p.stock_manchay + p.stock_santa_anita + p.stock_almacen) as stock_total,
+        c.name as category_name
+      FROM products p
+      LEFT JOIN categories c ON p.category_id = c.id
+      WHERE p.is_active = 1
+      ORDER BY p.name ASC
+    `).all();
+
+    res.json(products);
+  } catch (error) {
+    console.error('Get products error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Update product stock by location
+app.put('/api/dashboard/product/:id/stock', authMiddleware, requireRole('admin', 'owner'), (req, res) => {
+  try {
+    const { id } = req.params;
+    const { stock_manchay, stock_santa_anita, stock_almacen } = req.body;
+
+    const product = db().prepare('SELECT * FROM products WHERE id = ?').get(id);
+    if (!product) {
+      return res.status(404).json({ error: 'Producto no encontrado' });
+    }
+
+    const newManchay = stock_manchay !== undefined ? stock_manchay : product.stock_manchay;
+    const newSantaAnita = stock_santa_anita !== undefined ? stock_santa_anita : product.stock_santa_anita;
+    const newAlmacen = stock_almacen !== undefined ? stock_almacen : product.stock_almacen;
+    const newTotal = newManchay + newSantaAnita + newAlmacen;
+
+    db().prepare(`
+      UPDATE products 
+      SET stock_manchay = ?, stock_santa_anita = ?, stock_almacen = ?, stock = ?
+      WHERE id = ?
+    `).run(newManchay, newSantaAnita, newAlmacen, newTotal, id);
+
+    saveDatabase();
+
+    res.json({ message: 'Stock actualizado', success: true });
+  } catch (error) {
+    console.error('Update stock error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });

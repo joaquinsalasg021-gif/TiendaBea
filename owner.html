@@ -17,12 +17,22 @@
       </div>
       
       <div class="admin-tabs">
-        <button class="admin-tab active" data-tab="admins">Administradores</button>
+        <button class="admin-tab active" data-tab="dashboard">Dashboard</button>
+        <button class="admin-tab" data-tab="admins">Administradores</button>
         <button class="admin-tab" data-tab="settings">Configuración</button>
         <button class="admin-tab" data-tab="products">Productos</button>
         <button class="admin-tab" data-tab="orders">Pedidos</button>
       </div>
-      
+
+      <!-- Dashboard Tab -->
+      <div id="dashboard-tab" class="admin-content">
+        <h2>Dashboard de Gestión</h2>
+        <p class="mb-4 text-gray-600">Visualiza el inventario por sede y estadísticas de ventas mensuales.</p>
+        <a href="/dashboard" class="btn btn-primary">
+          <i class="fas fa-chart-line mr-2"></i>Abrir Dashboard Completo
+        </a>
+      </div>
+
       <!-- Admins Tab -->
       <div id="admins-tab" class="admin-content">
         <h2>Gestión de Administradores</h2>

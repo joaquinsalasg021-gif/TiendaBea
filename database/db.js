@@ -96,6 +96,9 @@ async function initDatabase() {
       description TEXT,
       price REAL NOT NULL,
       stock INTEGER DEFAULT 0,
+      stock_manchay INTEGER DEFAULT 0,
+      stock_santa_anita INTEGER DEFAULT 0,
+      stock_almacen INTEGER DEFAULT 0,
       category_id INTEGER,
       image_url TEXT,
       is_active INTEGER DEFAULT 1,
@@ -156,6 +159,22 @@ async function initDatabase() {
       key TEXT UNIQUE NOT NULL,
       value TEXT,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  // Stock movements table
+  db.run(`
+    CREATE TABLE IF NOT EXISTS stock_movements (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      product_id TEXT NOT NULL,
+      quantity INTEGER NOT NULL,
+      origin_location TEXT NOT NULL,
+      destination_location TEXT NOT NULL,
+      user_id INTEGER NOT NULL,
+      notes TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (product_id) REFERENCES products(id),
+      FOREIGN KEY (user_id) REFERENCES users(id)
     )
   `);
   
@@ -354,6 +373,27 @@ function createOwner() {
     console.log('Product ID migration to TEXT completed.');
   } catch (e) {
     console.log('Product ID migration:', e.message);
+  }
+
+  // Migrate products table - add location stock fields if they don't exist
+  try {
+    const productColumns = db.exec("PRAGMA table_info(products)");
+    if (productColumns.length > 0) {
+      const columnNames = productColumns[0].values.map(col => col[1]);
+      if (!columnNames.includes('stock_manchay')) {
+        console.log('Migrating products table: adding location stock fields...');
+        db.run("ALTER TABLE products ADD COLUMN stock_manchay INTEGER DEFAULT 0");
+        db.run("ALTER TABLE products ADD COLUMN stock_santa_anita INTEGER DEFAULT 0");
+        db.run("ALTER TABLE products ADD COLUMN stock_almacen INTEGER DEFAULT 0");
+        
+        // Distribute existing stock evenly across locations (temporary until admin sets proper values)
+        db.run("UPDATE products SET stock_manchay = stock / 3, stock_santa_anita = stock / 3, stock_almacen = stock - (stock / 3 * 2)");
+        saveDatabase();
+        console.log('Products table migration completed - stock distributed across locations.');
+      }
+    }
+  } catch (e) {
+    console.log('Products location stock migration check:', e.message);
   }
   
   // Save database
