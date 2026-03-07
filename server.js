@@ -384,7 +384,8 @@ app.get('/api/products', (req, res) => {
     const { category, search, active } = req.query;
     
     let query = `
-      SELECT p.*, c.name as category_name 
+      SELECT p.*, c.name as category_name,
+        (COALESCE(p.stock_manchay, 0) + COALESCE(p.stock_santa_anita, 0) + COALESCE(p.stock_almacen, 0) + COALESCE(p.stock_tienda, 0)) as stock
       FROM products p 
       LEFT JOIN categories c ON p.category_id = c.id 
       WHERE 1=1
@@ -407,7 +408,7 @@ app.get('/api/products', (req, res) => {
         params.push(active === 'true' ? 1 : 0);
       }
     } else {
-      query += ' AND p.is_active = 1';
+      query += ' AND (p.is_active = 1 OR p.is_active IS NULL)';
     }
 
     query += ' ORDER BY p.created_at DESC';
@@ -697,22 +698,25 @@ app.post('/api/cart/add', authMiddleware, (req, res) => {
   try {
     const { product_id, quantity = 1 } = req.body;
 
-    const product = db().prepare('SELECT * FROM products WHERE id = ? AND is_active = 1').get(product_id);
+    const product = db().prepare('SELECT * FROM products WHERE id = ? AND (is_active = 1 OR is_active IS NULL)').get(product_id);
     if (!product) {
       return res.status(404).json({ error: 'Product not found' });
     }
+
+    // Calculate total stock from all locations
+    const totalStock = (product.stock_manchay || 0) + (product.stock_santa_anita || 0) + (product.stock_almacen || 0) + (product.stock_tienda || 0);
 
     // Check existing cart item
     const existingItem = db().prepare('SELECT * FROM cart_items WHERE user_id = ? AND product_id = ?').get(req.user.id, product_id);
 
     if (existingItem) {
       const newQuantity = existingItem.quantity + quantity;
-      if (newQuantity > product.stock) {
+      if (newQuantity > totalStock) {
         return res.status(400).json({ error: 'Not enough stock' });
       }
       db().prepare('UPDATE cart_items SET quantity = ? WHERE id = ?').run(newQuantity, existingItem.id);
     } else {
-      if (quantity > product.stock) {
+      if (quantity > totalStock) {
         return res.status(400).json({ error: 'Not enough stock' });
       }
       db().prepare('INSERT INTO cart_items (user_id, product_id, quantity) VALUES (?, ?, ?)').run(req.user.id, product_id, quantity);
