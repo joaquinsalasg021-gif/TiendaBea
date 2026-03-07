@@ -404,16 +404,20 @@ const HomePage = {
   },
   
   addToCart: async (productId) => {
+    console.log('Adding to cart, productId:', productId);
+    
     if (!Auth.isLoggedIn()) {
       window.location.href = '/login';
       return;
     }
     
     try {
-      await api.post('/cart/add', { product_id: productId, quantity: 1 });
+      const result = await api.post('/cart/add', { product_id: productId, quantity: 1 });
+      console.log('Add to cart result:', result);
       UI.showToast('Producto agregado al carrito!');
       Navbar.updateCartBadge();
     } catch (e) {
+      console.error('Add to cart error:', e);
       UI.showToast(e.message, 'error');
     }
   }
