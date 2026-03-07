@@ -423,6 +423,15 @@
     async function loadInventoryData() {
       try {
         const response = await fetch('/api/dashboard/inventory', authHeaders());
+        if (!response.ok) {
+          if (response.status === 401) {
+            showNotification('Sesión expirada. Por favor, inicia sesión nuevamente.', 'error');
+            return;
+          }
+          const err = await response.json();
+          showNotification(err.error || 'Error al cargar inventario', 'error');
+          return;
+        }
         const data = await response.json();
         inventoryData = data;
         renderKPICards(data.totals);
@@ -441,6 +450,15 @@
       
       try {
         const response = await fetch(`/api/dashboard/sales?month=${month}&year=${year}`, authHeaders());
+        if (!response.ok) {
+          if (response.status === 401) {
+            showNotification('Sesión expirada. Por favor, inicia sesión nuevamente.', 'error');
+            return;
+          }
+          const err = await response.json();
+          showNotification(err.error || 'Error al cargar ventas', 'error');
+          return;
+        }
         const data = await response.json();
         salesData = data;
         renderSalesKPIs(data);
@@ -457,6 +475,15 @@
     async function loadMovements() {
       try {
         const response = await fetch('/api/dashboard/movements?limit=50', authHeaders());
+        if (!response.ok) {
+          if (response.status === 401) {
+            showNotification('Sesión expirada. Por favor, inicia sesión nuevamente.', 'error');
+            return;
+          }
+          const err = await response.json();
+          showNotification(err.error || 'Error al cargar movimientos', 'error');
+          return;
+        }
         const data = await response.json();
         movementsData = data;
         renderMovementsTable(data);
@@ -470,6 +497,15 @@
     async function loadProductsForTransfer() {
       try {
         const response = await fetch('/api/dashboard/products', authHeaders());
+        if (!response.ok) {
+          if (response.status === 401) {
+            showNotification('Sesión expirada. Por favor, inicia sesión nuevamente.', 'error');
+            return;
+          }
+          const err = await response.json();
+          showNotification(err.error || 'Error al cargar productos', 'error');
+          return;
+        }
         const data = await response.json();
         productsData = data;
         
