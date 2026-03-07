@@ -372,10 +372,16 @@
 
   <script src="/js/navbar.js"></script>
   <script>
-    // Check authentication first
+    // Debug: Log token info
     const token = localStorage.getItem('token');
+    const user = localStorage.getItem('user');
+    console.log('Dashboard - Token exists:', !!token);
+    console.log('Dashboard - User:', user);
+    
     if (!token) {
+      console.log('Redirecting to login - no token');
       window.location.href = '/login';
+      throw new Error('No token');
     }
     
     let currentTab = 'inventory';
