@@ -1489,6 +1489,98 @@ app.put('/api/dashboard/product/:id/stock', authMiddleware, requireRole('admin',
   }
 });
 
+// Seed products endpoint (owner only)
+app.post('/api/admin/seed-products', authMiddleware, requireRole('owner'), (req, res) => {
+  try {
+    const categories = [
+      'Hogar', 'Escuela', 'Verano', 'Tecnología', 'Accesorios', 
+      'Electrodomésticos', 'Limpieza', 'Ropa', 'Juguetes', 'Vajilla'
+    ];
+    
+    const sampleProducts = [
+      // Hogar (4 products)
+      { name: 'Set de Küchen', description: 'Set de Küchen de 10 piezas', price: 129.99, stock: 15, category: 'Hogar' },
+      { name: 'Juego de Sábanas', description: 'Juego de sábanas de algodon', price: 89.99, stock: 35, category: 'Hogar' },
+      { name: 'Cortinas Opacas', description: 'Cortinas opacas 2x1.5m', price: 59.99, stock: 20, category: 'Hogar' },
+      { name: 'Alfombra Moderna', description: 'Alfombra de sala 2x3m', price: 149.99, stock: 10, category: 'Hogar' },
+      // Escuela (4 products)
+      { name: 'Mochila Escolar', description: 'Mochila resistente para escuela', price: 39.99, stock: 40, category: 'Escuela' },
+      { name: 'Cuaderno Espiral', description: 'Cuaderno espiral 100 hojas', price: 12.99, stock: 100, category: 'Escuela' },
+      { name: 'Lápices de Colores', description: 'Set de 12 lápices de colores', price: 8.99, stock: 50, category: 'Escuela' },
+      { name: 'Mochila con Ruedas', description: 'Mochila escolar con ruedas', price: 79.99, stock: 15, category: 'Escuela' },
+      // Verano (4 products)
+      { name: 'Crema Solar', description: 'Protector solar SPF 50', price: 24.99, stock: 60, category: 'Verano' },
+      { name: 'Gorra', description: 'Gorra para el sol', price: 19.99, stock: 50, category: 'Verano' },
+      { name: 'Lentes de Sol', description: 'Lentes de sol polarizados', price: 45.99, stock: 30, category: 'Verano' },
+      { name: 'Toalla de Playa', description: 'Toalla de playa 150x200cm', price: 34.99, stock: 25, category: 'Verano' },
+      // Tecnología (4 products)
+      { name: 'Televisor 32"', description: 'Smart TV HD 32 pulgadas', price: 599.99, stock: 10, category: 'Tecnología' },
+      { name: 'Audífonos Inalámbricos', description: 'Audífonos Bluetooth', price: 89.99, stock: 25, category: 'Tecnología' },
+      { name: 'Cargador Portátil', description: 'Power bank 10000mAh', price: 49.99, stock: 40, category: 'Tecnología' },
+      { name: 'USB 64GB', description: 'Memoria USB 64GB', price: 19.99, stock: 80, category: 'Tecnología' },
+      // Accesorios (4 products)
+      { name: 'Reloj de Pulsera', description: 'Reloj analógico elegante', price: 79.99, stock: 20, category: 'Accesorios' },
+      { name: 'Cartera de Cuero', description: 'Cartera de cuero para hombre', price: 99.99, stock: 15, category: 'Accesorios' },
+      { name: 'Gafas de Vista', description: 'Gafas de marco fino', price: 59.99, stock: 25, category: 'Accesorios' },
+      { name: 'Cincho de Cuero', description: 'Cincho de cuero genuino', price: 45.99, stock: 30, category: 'Accesorios' },
+      // Electrodomésticos (4 products)
+      { name: 'Licuadora', description: 'Licuadora potente 500W', price: 69.99, stock: 20, category: 'Electrodomésticos' },
+      { name: 'Hervidor Eléctrico', description: 'Hervidor 1.8L acero inoxidable', price: 89.99, stock: 15, category: 'Electrodomésticos' },
+      { name: 'Ventilador de Torre', description: 'Ventilador oscilante 3 velocidades', price: 119.99, stock: 12, category: 'Electrodomésticos' },
+      { name: 'Plancha de Ropa', description: 'Plancha a vapor 2200W', price: 109.99, stock: 18, category: 'Electrodomésticos' },
+      // Limpieza (4 products)
+      { name: 'Detergente 5L', description: 'Detergente líquido premium 5L', price: 24.99, stock: 50, category: 'Limpieza' },
+      { name: 'Lejía 3L', description: 'Lejía concentrada 3L', price: 12.99, stock: 60, category: 'Limpieza' },
+      { name: 'Escoba Profesional', description: 'Escoba de cerdas duras', price: 18.99, stock: 35, category: 'Limpieza' },
+      { name: 'Trapeador', description: 'Trapeador de microfibra', price: 29.99, stock: 40, category: 'Limpieza' },
+      // Ropa (4 products)
+      { name: 'Camisa Manga Larga', description: 'Camisa de manga larga para hombre', price: 49.99, stock: 50, category: 'Ropa' },
+      { name: 'Pantalón Jeans', description: 'Pantalón jeans moderno', price: 79.99, stock: 30, category: 'Ropa' },
+      { name: 'Zapatillas Deportivas', description: 'Zapatillas cómodas para deporte', price: 89.99, stock: 25, category: 'Ropa' },
+      { name: 'Polo Algodón', description: 'Polo 100% algodón pak', price: 29.99, stock: 45, category: 'Ropa' },
+      // Juguetes (4 products)
+      { name: 'Pelota de Fútbol', description: 'Balón de fútbol profesional', price: 34.99, stock: 30, category: 'Juguetes' },
+      { name: 'Muñeca Barbie', description: 'Muñeca articulada con accesorios', price: 59.99, stock: 20, category: 'Juguetes' },
+      { name: 'Carro de Juguete', description: 'Carro metálico a control remoto', price: 79.99, stock: 15, category: 'Juguetes' },
+      { name: 'Puzzle 1000 piezas', description: 'Puzzle para adultos 1000 piezas', price: 24.99, stock: 25, category: 'Juguetes' },
+      // Vajilla (4 products)
+      { name: 'Vajilla 24 piezas', description: 'Juego de vajilla completo 24 piezas', price: 149.99, stock: 12, category: 'Vajilla' },
+      { name: 'Vasos de Vidrio', description: 'Set de 6 vasos de vidrio', price: 29.99, stock: 40, category: 'Vajilla' },
+      { name: 'Cuchillos de Cocina', description: 'Set de 6 cuchillos profesionales', price: 89.99, stock: 20, category: 'Vajilla' },
+      { name: 'Tabla de Picar', description: 'Tabla de picar de madera', price: 19.99, stock: 35, category: 'Vajilla' }
+    ];
+    
+    let addedCount = 0;
+    
+    sampleProducts.forEach(prod => {
+      const cat = db().prepare('SELECT id FROM categories WHERE name = ?').get(prod.category);
+      if (cat) {
+        // Check if product exists
+        const exists = db().prepare('SELECT id FROM products WHERE name = ?').get(prod.name);
+        if (!exists) {
+          // Distribute stock across 4 locations
+          const stockManchay = Math.floor(prod.stock / 4);
+          const stockSantaAnita = Math.floor(prod.stock / 4);
+          const stockAlmacen = Math.floor(prod.stock / 4);
+          const stockTienda = prod.stock - stockManchay - stockSantaAnita - stockAlmacen;
+          
+          db().prepare(
+            'INSERT INTO products (name, description, price, stock, stock_manchay, stock_santa_anita, stock_almacen, stock_tienda, category_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
+          ).run(prod.name, prod.description, prod.price, prod.stock, stockManchay, stockSantaAnita, stockAlmacen, stockTienda, cat.id);
+          addedCount++;
+        }
+      }
+    });
+    
+    saveDatabase();
+    
+    res.json({ message: `${addedCount} productos agregados correctamente` });
+  } catch (error) {
+    console.error('Seed products error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // ==================== PDF GENERATION ====================
 
 async function generateOrderPDF(orderId) {
