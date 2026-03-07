@@ -1196,10 +1196,10 @@ app.get('/api/dashboard/inventory', authMiddleware, requireRole('admin', 'owner'
   try {
     const products = db().prepare(`
       SELECT p.*, c.name as category_name,
-        (p.stock_manchay + p.stock_santa_anita + p.stock_almacen + COALESCE(p.stock_tienda, 0)) as stock_total
+        (COALESCE(p.stock_manchay, 0) + COALESCE(p.stock_santa_anita, 0) + COALESCE(p.stock_almacen, 0) + COALESCE(p.stock_tienda, 0)) as stock_total
       FROM products p
       LEFT JOIN categories c ON p.category_id = c.id
-      WHERE p.is_active = 1
+      WHERE p.is_active = 1 OR p.is_active IS NULL
       ORDER BY p.name ASC
     `).all();
 
@@ -1215,12 +1215,15 @@ app.get('/api/dashboard/inventory', authMiddleware, requireRole('admin', 'owner'
     };
 
     products.forEach(p => {
+      const manchayStock = p.stock_manchay || 0;
+      const santaAnitaStock = p.stock_santa_anita || 0;
+      const almacenStock = p.stock_almacen || 0;
       const tiendaStock = p.stock_tienda || 0;
-      const total = p.stock_manchay + p.stock_santa_anita + p.stock_almacen + tiendaStock;
+      const total = manchayStock + santaAnitaStock + almacenStock + tiendaStock;
       totals.totalStock += total;
-      totals.manchayStock += p.stock_manchay;
-      totals.santaAnitaStock += p.stock_santa_anita;
-      totals.almacenStock += p.stock_almacen;
+      totals.manchayStock += manchayStock;
+      totals.santaAnitaStock += santaAnitaStock;
+      totals.almacenStock += almacenStock;
       totals.tiendaStock += tiendaStock;
       if (total > 0 && total <= 10) totals.lowStock++;
       if (total === 0) totals.outOfStock++;
@@ -1228,8 +1231,11 @@ app.get('/api/dashboard/inventory', authMiddleware, requireRole('admin', 'owner'
 
     // Add status to each product
     const productsWithStatus = products.map(p => {
+      const manchayStock = p.stock_manchay || 0;
+      const santaAnitaStock = p.stock_santa_anita || 0;
+      const almacenStock = p.stock_almacen || 0;
       const tiendaStock = p.stock_tienda || 0;
-      const total = p.stock_manchay + p.stock_santa_anita + p.stock_almacen + tiendaStock;
+      const total = manchayStock + santaAnitaStock + almacenStock + tiendaStock;
       let status = 'Normal';
       if (total === 0) status = 'Agotado';
       else if (total <= 10) status = 'Bajo stock';

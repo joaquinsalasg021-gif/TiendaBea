@@ -436,6 +436,14 @@ function createOwner() {
     const productColumns = db.exec("PRAGMA table_info(products)");
     if (productColumns.length > 0) {
       const columnNames = productColumns[0].values.map(col => col[1]);
+      
+      // Add is_active column if it doesn't exist (for older databases)
+      if (!columnNames.includes('is_active')) {
+        console.log('Migrating products table: adding is_active column...');
+        db.run("ALTER TABLE products ADD COLUMN is_active INTEGER DEFAULT 1");
+        saveDatabase();
+      }
+      
       if (!columnNames.includes('stock_manchay')) {
         console.log('Migrating products table: adding location stock fields...');
         db.run("ALTER TABLE products ADD COLUMN stock_manchay INTEGER DEFAULT 0");
