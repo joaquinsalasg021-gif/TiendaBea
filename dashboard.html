@@ -886,6 +886,7 @@
     // Auth Headers
     function authHeaders() {
       const token = localStorage.getItem('token');
+      console.log('Auth - Token:', token ? 'exists' : 'null');
       return token ? { 'Authorization': `Bearer ${token}` } : {};
     }
 
