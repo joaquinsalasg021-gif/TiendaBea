@@ -26,11 +26,239 @@
 
       <!-- Dashboard Tab -->
       <div id="dashboard-tab" class="admin-content">
-        <h2>Dashboard de Gestión</h2>
-        <p class="mb-4 text-gray-600">Visualiza el inventario por sede y estadísticas de ventas mensuales.</p>
-        <a href="/dashboard" class="btn btn-primary">
-          <i class="fas fa-chart-line mr-2"></i>Abrir Dashboard Completo
-        </a>
+        <div class="dashboard-container">
+          <div class="flex justify-between items-center mb-6">
+            <div>
+              <h2 class="text-2xl font-bold text-gray-800">Dashboard de Gestión</h2>
+              <p class="text-gray-600">Inventario por sede y estadísticas de ventas</p>
+            </div>
+          </div>
+
+          <!-- Dashboard Content Inline -->
+          <div id="owner-dashboard">
+            <!-- Tab Navigation -->
+            <div class="flex gap-2 mb-4 border-b">
+              <button class="px-4 py-2 text-sm font-medium tab-btn active" data-tab="inv">Inventario</button>
+              <button class="px-4 py-2 text-sm font-medium tab-btn" data-tab="ventas">Ventas</button>
+              <button class="px-4 py-2 text-sm font-medium tab-btn" data-tab="mov">Movimientos</button>
+              <button class="px-4 py-2 text-sm font-medium tab-btn" data-tab="trans">Transferir</button>
+            </div>
+
+            <!-- Inventory Tab -->
+            <div id="tab-inv" class="tab-panel">
+              <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6" id="kpi-cards"></div>
+              <div class="overflow-x-auto">
+                <table class="w-full text-sm" id="inventory-table">
+                  <thead class="bg-gray-100">
+                    <tr>
+                      <th class="p-2 text-left">Producto</th>
+                      <th class="p-2 text-left">Categoría</th>
+                      <th class="p-2 text-right">Total</th>
+                      <th class="p-2 text-right">Manchay</th>
+                      <th class="p-2 text-right">Santa Anita</th>
+                      <th class="p-2 text-right">Almacén</th>
+                      <th class="p-2 text-right">Tienda</th>
+                      <th class="p-2 text-center">Estado</th>
+                    </tr>
+                  </thead>
+                  <tbody id="inventory-tbody"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Sales Tab -->
+            <div id="tab-ventas" class="tab-panel hidden">
+              <div class="flex gap-2 mb-4">
+                <select id="dash-month" class="border rounded px-2 py-1"></select>
+                <select id="dash-year" class="border rounded px-2 py-1"></select>
+                <button onclick="loadDashSales()" class="bg-blue-500 text-white px-3 py-1 rounded">Ver</button>
+              </div>
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6" id="sales-kpis"></div>
+              <div class="grid md:grid-cols-2 gap-4 mb-6">
+                <div class="bg-white p-4 rounded shadow"><canvas id="salesChart"></canvas></div>
+                <div class="bg-white p-4 rounded shadow"><canvas id="topProductsChart"></canvas></div>
+              </div>
+            </div>
+
+            <!-- Movements Tab -->
+            <div id="tab-mov" class="tab-panel hidden">
+              <table class="w-full text-sm" id="movements-table">
+                <thead class="bg-gray-100">
+                  <tr>
+                    <th class="p-2 text-left">Fecha</th>
+                    <th class="p-2 text-left">Producto</th>
+                    <th class="p-2 text-right">Cantidad</th>
+                    <th class="p-2 text-center">Origen</th>
+                    <th class="p-2 text-center">Destino</th>
+                    <th class="p-2 text-left">Usuario</th>
+                  </tr>
+                </thead>
+                <tbody id="movements-tbody"></tbody>
+              </table>
+            </div>
+
+            <!-- Transfer Tab -->
+            <div id="tab-trans" class="tab-panel hidden">
+              <form id="transfer-form" class="max-w-md">
+                <div class="mb-3">
+                  <label class="block text-sm font-medium mb-1">Producto</label>
+                  <select id="transfer-product" class="w-full border rounded p-2" required></select>
+                </div>
+                <div class="mb-3">
+                  <label class="block text-sm font-medium mb-1">Cantidad</label>
+                  <input type="number" id="transfer-qty" class="w-full border rounded p-2" min="1" required>
+                </div>
+                <div class="grid grid-cols-2 gap-2 mb-3">
+                  <div>
+                    <label class="block text-sm font-medium mb-1">Origen</label>
+                    <select id="transfer-origin" class="w-full border rounded p-2" required></select>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium mb-1">Destino</label>
+                    <select id="transfer-dest" class="w-full border rounded p-2" required></select>
+                  </div>
+                </div>
+                <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded w-full">Transferir Stock</button>
+              </form>
+            </div>
+          </div>
+        </div>
+        <script>
+          // Owner Dashboard Inline Script
+          (function() {
+            const API = '/api';
+            let salesChart = null, topChart = null;
+            const locs = ['manchay', 'santa_anita', 'almacen', 'tienda'];
+            const locNames = {manchay: 'Manchay', santa_anita: 'Santa Anita', almacen: 'Almacén', tienda: 'Tienda'};
+
+            // Auth
+            function auth() {
+              const t = localStorage.getItem('token');
+              return t ? {Authorization: 'Bearer ' + t} : {};
+            }
+
+            // Init
+            (function init() {
+              const m = document.getElementById('dash-month');
+              const y = document.getElementById('dash-year');
+              const cm = new Date().getMonth() + 1, cy = new Date().getFullYear();
+              for(let i=1;i<=12;i++) m.add(new Option(i,i),i);
+              for(let i=cy;i>=cy-5;i--) y.add(new Option(i,i),i);
+              m.value = cm; y.value = cy;
+              
+              loadInv();
+              loadTransProducts();
+
+              document.querySelectorAll('.tab-btn').forEach(b => b.onclick = () => {
+                document.querySelectorAll('.tab-btn').forEach(x => x.classList.remove('active','border-blue-500'));
+                b.classList.add('active','border-blue-500');
+                document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+                document.getElementById('tab-'+b.dataset.tab).classList.remove('hidden');
+              });
+              document.getElementById('transfer-form').onsubmit = doTransfer;
+            })();
+
+            async function loadInv() {
+              try {
+                const r = await fetch(API+'/dashboard/inventory', {headers: auth()});
+                if(!r.ok) return alert('Error cargando inventario');
+                const d = await r.json();
+                renderKPIs(d.totals);
+                renderInvTable(d.products);
+              } catch(e) { console.error(e); }
+            }
+
+            function renderKPIs(t) {
+              document.getElementById('kpi-cards').innerHTML = `
+                <div class="bg-blue-50 p-3 rounded"><div class="text-xs text-gray-500">Total Stock</div><div class="text-xl font-bold">${t.totalStock}</div></div>
+                <div class="bg-green-50 p-3 rounded"><div class="text-xs text-gray-500">Manchay</div><div class="text-xl font-bold">${t.manchayStock}</div></div>
+                <div class="bg-yellow-50 p-3 rounded"><div class="text-xs text-gray-500">Santa Anita</div><div class="text-xl font-bold">${t.santaAnitaStock}</div></div>
+                <div class="bg-purple-50 p-3 rounded"><div class="text-xs text-gray-500">Almacén</div><div class="text-xl font-bold">${t.almacenStock}</div></div>
+                <div class="bg-red-50 p-3 rounded"><div class="text-xs text-gray-500">Bajo Stock</div><div class="text-xl font-bold text-red-600">${t.lowStock}</div></div>
+              `;
+            }
+
+            function renderInvTable(ps) {
+              const b = document.getElementById('inventory-tbody');
+              b.innerHTML = ps.map(p => `<tr class="border-b hover:bg-gray-50">
+                <td class="p-2">${p.name}</td>
+                <td class="p-2">${p.category_name||'-'}</td>
+                <td class="p-2 text-right font-medium">${p.stock_total}</td>
+                <td class="p-2 text-right">${p.stock_manchay||0}</td>
+                <td class="p-2 text-right">${p.stock_santa_anita||0}</td>
+                <td class="p-2 text-right">${p.stock_almacen||0}</td>
+                <td class="p-2 text-right">${p.stock_tienda||0}</td>
+                <td class="p-2 text-center"><span class="px-2 py-1 rounded text-xs ${p.status==='Agotado'?'bg-red-100 text-red-700':p.status==='Bajo stock'?'bg-yellow-100 text-yellow-700':'bg-green-100 text-green-700'}">${p.status}</span></td>
+              </tr>`).join('');
+            }
+
+            window.loadDashSales = async function() {
+              const m = document.getElementById('dash-month').value, y = document.getElementById('dash-year').value;
+              try {
+                const r = await fetch(API+'/dashboard/sales?month='+m+'&year='+y, {headers: auth()});
+                if(!r.ok) return alert('Error ventas');
+                const d = await r.json();
+                document.getElementById('sales-kpis').innerHTML = `
+                  <div class="bg-green-50 p-3 rounded"><div class="text-xs">Ingresos</div><div class="text-xl font-bold">S/ ${d.totalRevenue}</div></div>
+                  <div class="bg-blue-50 p-3 rounded"><div class="text-xs">Pedidos</div><div class="text-xl font-bold">${d.totalOrders}</div></div>
+                  <div class="bg-purple-50 p-3 rounded"><div class="text-xs">Productos Vendidos</div><div class="text-xl font-bold">${d.totalProductsSold}</div></div>
+                  <div class="bg-yellow-50 p-3 rounded"><div class="text-xs">Promedio/Día</div><div class="text-xl font-bold">S/ ${d.dailyAverage}</div></div>
+                `;
+              } catch(e) { console.error(e); }
+            };
+
+            async function loadMovements() {
+              try {
+                const r = await fetch(API+'/dashboard/movements?limit=50', {headers: auth()});
+                if(!r.ok) return;
+                const d = await r.json();
+                document.getElementById('movements-tbody').innerHTML = d.map(m => `<tr class="border-b">
+                  <td class="p-2">${new Date(m.created_at).toLocaleDateString()}</td>
+                  <td class="p-2">${m.product_name}</td>
+                  <td class="p-2 text-right">${m.quantity}</td>
+                  <td class="p-2 text-center">${locNames[m.origin]||m.origin}</td>
+                  <td class="p-2 text-center">${locNames[m.destination]||m.destination}</td>
+                  <td class="p-2">${m.user_name||'-'}</td>
+                </tr>`).join('');
+              } catch(e) { console.error(e); }
+            }
+
+            async function loadTransProducts() {
+              try {
+                const r = await fetch(API+'/dashboard/products', {headers: auth()});
+                if(!r.ok) return;
+                const d = await r.json();
+                const s = document.getElementById('transfer-product');
+                s.innerHTML = d.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+                const o = document.getElementById('transfer-origin'), dt = document.getElementById('transfer-dest');
+                locs.forEach(l => { o.add(new Option(locNames[l],l)); dt.add(new Option(locNames[l],l)); });
+              } catch(e) { console.error(e); }
+            }
+
+            async function doTransfer(e) {
+              e.preventDefault();
+              const pid = document.getElementById('transfer-product').value;
+              const qty = parseInt(document.getElementById('transfer-qty').value);
+              const ori = document.getElementById('transfer-origin').value;
+              const dest = document.getElementById('transfer-dest').value;
+              if(ori === dest) return alert('Origen y destino deben ser diferentes');
+              try {
+                const r = await fetch(API+'/dashboard/transfer', {
+                  method: 'POST',
+                  headers: {...auth(), 'Content-Type': 'application/json'},
+                  body: JSON.stringify({product_id: pid, quantity: qty, origin: ori, destination: dest})
+                });
+                if(!r.ok) { const e = await r.json(); return alert(e.error); }
+                alert('Transferencia exitosa');
+                document.getElementById('transfer-qty').value = '';
+                loadInv(); loadMovements();
+              } catch(e) { alert('Error'); }
+            }
+
+            // Load movements when tab shown
+            document.querySelector('[data-tab="mov"]').onclick = () => { loadMovements(); };
+          })();
+        </script>
       </div>
 
       <!-- Admins Tab -->
