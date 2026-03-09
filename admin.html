@@ -98,8 +98,13 @@
         </div>
         
         <div class="form-group">
-          <label class="form-label">Stock por Ubicación</label>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <label class="form-label">Stock Total (se guarda en Almacén)</label>
+          <input type="number" id="product_stock" class="form-input" placeholder="Stock Total" value="0" min="0" onchange="document.getElementById('stock_almacen').value = this.value">
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Distribución por Ubicación</label>
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
             <div>
               <input type="number" id="stock_manchay" class="form-input" placeholder="Manchay" value="0" min="0">
             </div>
@@ -109,7 +114,6 @@
             <div>
               <input type="number" id="stock_almacen" class="form-input" placeholder="Almacén/Tienda Web" value="0" min="0">
             </div>
-            <!-- Tienda Web field removed - combined with Almacén -->
           </div>
         </div>
         
@@ -194,8 +198,9 @@
         // Get stock values from each location
         const stockManchay = parseInt(document.getElementById('stock_manchay').value) || 0;
         const stockSantaAnita = parseInt(document.getElementById('stock_santa_anita').value) || 0;
-        const stockAlmacen = parseInt(document.getElementById('stock_almacen').value) || 0;
-        // stock_tienda is now combined with almacen
+        // Get the total stock from the product_stock field (defaults to almacen)
+        const stockInput = parseInt(document.getElementById('product_stock').value) || 0;
+        const stockAlmacen = parseInt(document.getElementById('stock_almacen').value) || stockInput;
         const totalStock = stockManchay + stockSantaAnita + stockAlmacen;
         
         formData.append('id', newProductId || productId);
