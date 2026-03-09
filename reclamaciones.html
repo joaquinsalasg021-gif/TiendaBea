@@ -9,140 +9,391 @@
   <link rel="stylesheet" href="/css/navbar.css">
   <link rel="stylesheet" href="/css/footer.css">
   <style>
+    :root {
+      --primary: #8B5CF6;
+      --primary-dark: #7C3AED;
+      --primary-light: #A78BFA;
+      --secondary: #F59E0B;
+      --success: #10B981;
+      --error: #EF4444;
+      --warning: #F59E0B;
+      --gray: #6B7280;
+      --gray-light: #9CA3AF;
+      --gray-lighter: #E5E7EB;
+      --gray-lightest: #F9FAFB;
+      --white: #FFFFFF;
+      --text-dark: #1F2937;
+      --text-medium: #4B5563;
+      --text-light: #6B7280;
+    }
+    
+    * {
+      box-sizing: border-box;
+    }
+    
+    body {
+      background: linear-gradient(135deg, #F3E8FF 0%, #EDE9FE 50%, #DDD6FE 100%);
+      min-height: 100vh;
+      font-family: 'Poppins', 'Open Sans', sans-serif;
+    }
+    
+    .page-wrapper {
+      padding: 2rem 1rem;
+      min-height: 100vh;
+    }
+    
     .reclamaciones-container {
-      max-width: 600px;
+      max-width: 680px;
       margin: 0 auto;
+      animation: fadeInUp 0.6s ease-out;
+    }
+    
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
     
     .reclamaciones-header {
       text-align: center;
       margin-bottom: 2rem;
+      position: relative;
+    }
+    
+    .reclamaciones-header::before {
+      content: '';
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      border-radius: 20px;
+      opacity: 0.15;
+      z-index: -1;
+    }
+    
+    .header-icon {
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1rem;
+      box-shadow: 0 10px 30px rgba(139, 92, 246, 0.3);
+    }
+    
+    .header-icon svg {
+      width: 28px;
+      height: 28px;
+      color: white;
     }
     
     .reclamaciones-header h1 {
-      font-size: 1.8rem;
-      color: var(--primary);
+      font-size: 1.75rem;
+      color: var(--text-dark);
       margin-bottom: 0.5rem;
+      font-weight: 700;
+    }
+    
+    .reclamaciones-header p {
+      color: var(--text-light);
+      font-size: 0.95rem;
     }
     
     .reclamacion-card {
       background: var(--white);
-      border-radius: 12px;
-      padding: 2rem;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      border-radius: 20px;
+      padding: 2.5rem;
+      box-shadow: 
+        0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 2px 4px -1px rgba(0, 0, 0, 0.06),
+        0 20px 25px -5px rgba(0, 0, 0, 0.1),
+        0 -2px 10px rgba(139, 92, 246, 0.05);
+      border: 1px solid rgba(139, 92, 246, 0.1);
+    }
+    
+    .form-section {
+      margin-bottom: 2rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--gray-lighter);
+    }
+    
+    .form-section:last-of-type {
+      border-bottom: none;
+      margin-bottom: 1.5rem;
+      padding-bottom: 0;
+    }
+    
+    .section-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .section-title::before {
+      content: '';
+      width: 4px;
+      height: 16px;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      border-radius: 2px;
     }
     
     .form-group {
-      margin-bottom: 1.25rem;
+      margin-bottom: 1.5rem;
+      position: relative;
+    }
+    
+    .form-group:last-child {
+      margin-bottom: 0;
     }
     
     .form-group label {
       display: block;
       font-weight: 600;
       margin-bottom: 0.5rem;
-      color: #333;
-      font-size: 0.95rem;
+      color: var(--text-dark);
+      font-size: 0.9rem;
+      transition: all 0.2s;
     }
     
     .form-group label .required {
-      color: var(--secondary);
+      color: var(--error);
+      margin-left: 2px;
     }
     
     .form-group input,
-    .form-group textarea {
+    .form-group textarea,
+    .form-group select {
       width: 100%;
-      padding: 0.75rem 1rem;
-      border: 2px solid #e5e7eb;
-      border-radius: 8px;
-      font-size: 1rem;
+      padding: 0.875rem 1rem;
+      border: 2px solid var(--gray-lighter);
+      border-radius: 12px;
+      font-size: 0.95rem;
       font-family: inherit;
-      transition: border-color 0.3s;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      background: var(--white);
+      color: var(--text-dark);
+    }
+    
+    .form-group input::placeholder,
+    .form-group textarea::placeholder {
+      color: var(--gray-light);
     }
     
     .form-group input:focus,
-    .form-group textarea:focus {
+    .form-group textarea:focus,
+    .form-group select:focus {
       outline: none;
       border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.15);
+      transform: translateY(-1px);
+    }
+    
+    .form-group input:hover,
+    .form-group textarea:hover,
+    .form-group select:hover {
+      border-color: var(--primary-light);
     }
     
     .form-group textarea {
-      min-height: 120px;
+      min-height: 140px;
       resize: vertical;
+      line-height: 1.6;
+    }
+    
+    .form-group select {
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236B7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 1rem center;
+      background-size: 1.25rem;
+      padding-right: 2.5rem;
+    }
+    
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    
+    @media (max-width: 540px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    .input-icon-wrapper {
+      position: relative;
+    }
+    
+    .input-icon-wrapper svg {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 18px;
+      height: 18px;
+      color: var(--gray-light);
+      transition: color 0.3s;
+    }
+    
+    .input-icon-wrapper input {
+      padding-left: 2.75rem;
+    }
+    
+    .input-icon-wrapper input:focus + svg,
+    .input-icon-wrapper input:focus ~ svg {
+      color: var(--primary);
     }
     
     .form-group .input-hint {
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       color: var(--gray-light);
-      margin-top: 0.25rem;
+      margin-top: 0.4rem;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+    
+    .form-group .input-hint svg {
+      width: 14px;
+      height: 14px;
     }
     
     .btn-submit {
       width: 100%;
-      padding: 0.875rem;
-      background: var(--primary);
+      padding: 1rem;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
       color: white;
       border: none;
-      border-radius: 8px;
+      border-radius: 12px;
       font-size: 1rem;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.3s;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      box-shadow: 0 4px 14px rgba(139, 92, 246, 0.4);
     }
     
     .btn-submit:hover {
-      background: #6D28D9;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(139, 92, 246, 0.5);
+    }
+    
+    .btn-submit:active {
+      transform: translateY(0);
+    }
+    
+    .btn-submit svg {
+      width: 20px;
+      height: 20px;
+    }
+    
+    .btn-submit:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
     }
     
     /* Confirmation State */
     .confirmation-container {
       display: none;
       text-align: center;
+      animation: fadeInUp 0.5s ease-out;
     }
     
     .confirmation-icon {
-      width: 70px;
-      height: 70px;
-      background: var(--success);
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin: 0 auto 1.25rem;
-      font-size: 2rem;
+      margin: 0 auto 1.5rem;
+      font-size: 2.5rem;
       color: white;
+      box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+      animation: scaleIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    
+    @keyframes scaleIn {
+      from {
+        transform: scale(0);
+        opacity: 0;
+      }
+      to {
+        transform: scale(1);
+        opacity: 1;
+      }
     }
     
     .confirmation-title {
-      font-size: 1.4rem;
+      font-size: 1.5rem;
       color: var(--success);
       margin-bottom: 0.75rem;
+      font-weight: 700;
     }
     
     .confirmation-message {
-      color: #666;
+      color: var(--text-medium);
       margin-bottom: 1.5rem;
+      line-height: 1.6;
     }
     
     .whatsapp-preview {
-      background: #f5f5f5;
-      border-radius: 8px;
-      padding: 1rem;
-      margin-bottom: 1.25rem;
+      background: linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%);
+      border-radius: 16px;
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
       text-align: left;
+      border: 1px solid rgba(16, 185, 129, 0.2);
     }
     
     .whatsapp-preview-label {
       font-weight: 600;
-      margin-bottom: 0.5rem;
-      color: #333;
+      margin-bottom: 0.75rem;
+      color: var(--text-dark);
       font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .whatsapp-preview-label svg {
+      width: 16px;
+      height: 16px;
+      color: var(--success);
     }
     
     .whatsapp-preview-text {
       font-size: 0.85rem;
-      color: #666;
+      color: var(--text-medium);
       white-space: pre-wrap;
       word-break: break-word;
+      line-height: 1.5;
+      background: var(--white);
+      padding: 1rem;
+      border-radius: 8px;
     }
     
     .btn-group {
@@ -153,35 +404,49 @@
     .btn-whatsapp,
     .btn-copy {
       flex: 1;
-      padding: 0.75rem;
-      border-radius: 8px;
+      padding: 0.875rem 1rem;
+      border-radius: 12px;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.3s;
       border: none;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    
+    .btn-whatsapp svg,
+    .btn-copy svg {
+      width: 18px;
+      height: 18px;
     }
     
     .btn-whatsapp {
-      background: #25D366;
+      background: linear-gradient(135deg, #25D366 0%, #1DA851 100%);
       color: white;
+      box-shadow: 0 4px 14px rgba(37, 211, 102, 0.3);
     }
     
     .btn-whatsapp:hover {
-      background: #1DA851;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4);
     }
     
     .btn-copy {
-      background: var(--primary);
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
       color: white;
+      box-shadow: 0 4px 14px rgba(139, 92, 246, 0.3);
     }
     
     .btn-copy:hover {
-      background: #6D28D9;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
     }
     
     .btn-copy.copied {
-      background: var(--success);
+      background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
     }
     
     .back-link {
@@ -192,29 +457,98 @@
       text-decoration: none;
       margin-bottom: 2rem;
       font-weight: 500;
+      transition: all 0.3s;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
     }
     
     .back-link:hover {
-      text-decoration: underline;
+      background: rgba(139, 92, 246, 0.1);
+      text-decoration: none;
+      transform: translateX(-4px);
+    }
+    
+    .back-link svg {
+      width: 18px;
+      height: 18px;
     }
     
     .legal-notice {
-      margin-top: 1.5rem;
-      padding: 1rem;
-      background: #f9fafb;
-      border-radius: 8px;
-      font-size: 0.85rem;
-      color: var(--gray-light);
+      margin-top: 2rem;
+      padding: 1.25rem;
+      background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+      border-radius: 12px;
+      font-size: 0.8rem;
+      color: #92400E;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+    
+    .legal-notice svg {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    
+    .legal-notice strong {
+      display: block;
+      margin-bottom: 0.25rem;
     }
     
     @media (max-width: 768px) {
+      .page-wrapper {
+        padding: 1rem;
+      }
+      
       .reclamacion-card {
         padding: 1.5rem;
+        border-radius: 16px;
+      }
+      
+      .reclamaciones-header h1 {
+        font-size: 1.5rem;
       }
       
       .btn-group {
         flex-direction: column;
       }
+      
+      .header-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 14px;
+      }
+      
+      .header-icon svg {
+        width: 24px;
+        height: 24px;
+      }
+    }
+    
+    /* Form validation states */
+    .form-group.error input,
+    .form-group.error textarea,
+    .form-group.error select {
+      border-color: var(--error);
+      box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.15);
+    }
+    
+    .form-group.error label {
+      color: var(--error);
+    }
+    
+    .error-message {
+      color: var(--error);
+      font-size: 0.8rem;
+      margin-top: 0.25rem;
+      display: none;
+    }
+    
+    .form-group.error .error-message {
+      display: block;
     }
   </style>
 </head>
@@ -243,13 +577,20 @@
     </aside>
     
     <main class="main-content">
-      <a href="/" class="back-link">← Volver a la tienda</a>
+      <a href="/" class="back-link">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+        Volver a la tienda
+      </a>
       
-      <div class="reclamaciones-container">
-        <div class="reclamaciones-header">
-          <h1>📝 Libro de Reclamaciones</h1>
-          <p>Tu opinión nos importa. Contáctanos para resolver cualquier problema.</p>
-        </div>
+      <div class="page-wrapper">
+        <div class="reclamaciones-container">
+          <div class="reclamaciones-header">
+            <div class="header-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+            </div>
+            <h1>Libro de Reclamaciones</h1>
+            <p>Tu opinión nos importa. Contáctanos para resolver cualquier problema.</p>
+          </div>
         
         <!-- Formulario -->
         <div class="reclamacion-card" id="reclamacion-form">
@@ -285,7 +626,10 @@
               <textarea id="detalle" name="detalle" required placeholder="Describe detalladamente tu reclamo o queja..."></textarea>
             </div>
             
-            <button type="submit" class="btn-submit">Enviar Reclamo</button>
+            <button type="submit" class="btn-submit">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
+              Enviar Reclamo
+            </button>
           </form>
           
           <div class="legal-notice">
@@ -305,10 +649,17 @@
           </div>
           
           <div class="btn-group">
-            <button class="btn-copy" id="btn-copy" onclick="copyMessage()">📋 Copiar Mensaje</button>
-            <button class="btn-whatsapp" onclick="openWhatsApp()">💬 Enviar por WhatsApp</button>
+            <button class="btn-copy" id="btn-copy" onclick="copyMessage()">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>
+              Copiar Mensaje
+            </button>
+            <button class="btn-whatsapp" onclick="openWhatsApp()">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+              Enviar por WhatsApp
+            </button>
           </div>
         </div>
+      </div>
       </div>
     </main>
   </div>
