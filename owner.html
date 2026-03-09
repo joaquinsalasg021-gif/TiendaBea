@@ -6,6 +6,7 @@
   <title>Panel de Owner - TiendaBea</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Open+Sans:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
 </head>
 <body data-page="owner">
   <nav class="navbar" id="navbar"></nav>
@@ -26,218 +27,176 @@
 
       <!-- Dashboard Tab -->
       <div id="dashboard-tab" class="admin-content">
-        <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-6 rounded-xl mb-6 shadow-lg">
-          <div class="flex justify-between items-center">
-            <div>
-              <h2 class="text-2xl font-bold">Dashboard de Gestión</h2>
-              <p class="text-blue-100 mt-1">Inventario por sede y estadísticas de ventas</p>
+        <!-- Header -->
+        <div class="dashboard-header">
+          <div class="dashboard-header-content">
+            <div class="header-info">
+              <h2>Dashboard de Gestión</h2>
+              <p>Inventario por sede y estadísticas de ventas</p>
             </div>
-            <div class="text-right">
-              <div class="text-3xl font-bold" id="total-stock-kpi">-</div>
-              <div class="text-blue-200 text-sm">Total Stock</div>
+            <div class="total-stock">
+              <div class="number" id="total-stock-kpi">-</div>
+              <div class="label">Total Stock</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="dashboard-tabs">
+          <button class="tab-btn active" data-tab="inv"><i class="fas fa-boxes"></i>Inventario</button>
+          <button class="tab-btn" data-tab="ventas"><i class="fas fa-chart-line"></i>Ventas</button>
+          <button class="tab-btn" data-tab="mov"><i class="fas fa-exchange-alt"></i>Movimientos</button>
+          <button class="tab-btn" data-tab="trans"><i class="fas fa-truck"></i>Transferir</button>
+        </div>
+
+        <!-- Inventory Tab -->
+        <div id="tab-inv" class="tab-panel">
+          <!-- KPI Cards -->
+          <div class="kpi-grid">
+            <div class="kpi-card kpi-total">
+              <div class="label">Stock Total</div>
+              <div class="value" id="kpi-total">-</div>
+            </div>
+            <div class="kpi-card kpi-manchay">
+              <div class="label">Manchay</div>
+              <div class="value" id="kpi-manchay">-</div>
+            </div>
+            <div class="kpi-card kpi-santa">
+              <div class="label">Santa Anita</div>
+              <div class="value" id="kpi-santa">-</div>
+            </div>
+            <div class="kpi-card kpi-almacen">
+              <div class="label">Almacén</div>
+              <div class="value" id="kpi-almacen">-</div>
+            </div>
+            <div class="kpi-card kpi-low">
+              <div class="label">Bajo Stock</div>
+              <div class="value" id="kpi-low">-</div>
+            </div>
+          </div>
+
+          <!-- Table -->
+          <div class="data-table-container">
+            <div class="table-header">
+              <h3><i class="fas fa-list"></i>Distribución de Stock por Producto</h3>
+            </div>
+            <table class="data-table" id="inventory-table">
+              <thead>
+                <tr>
+                  <th>Producto</th>
+                  <th>Categoría</th>
+                  <th class="text-right">Total</th>
+                  <th class="text-right">Manchay</th>
+                  <th class="text-right">Santa Anita</th>
+                  <th class="text-right">Almacén</th>
+                  <th class="text-right">Tienda</th>
+                  <th class="text-center">Estado</th>
+                </tr>
+              </thead>
+              <tbody id="inventory-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Sales Tab -->
+        <div id="tab-ventas" class="tab-panel hidden">
+          <!-- Filters -->
+          <div class="filters-bar">
+            <label>Período:</label>
+            <select id="dash-month"></select>
+            <select id="dash-year"></select>
+            <button class="btn-filter" onclick="loadDashSales()"><i class="fas fa-search"></i>Ver</button>
+          </div>
+
+          <!-- Sales KPIs -->
+          <div class="sales-kpi-grid">
+            <div class="sales-kpi kpi-revenue">
+              <div class="label">Ingresos del Mes</div>
+              <div class="value" id="sales-revenue">S/ 0</div>
+            </div>
+            <div class="sales-kpi kpi-orders">
+              <div class="label">Pedidos</div>
+              <div class="value" id="sales-orders">0</div>
+            </div>
+            <div class="sales-kpi kpi-products">
+              <div class="label">Productos Vendidos</div>
+              <div class="value" id="sales-products">0</div>
+            </div>
+            <div class="sales-kpi kpi-daily">
+              <div class="label">Promedio/Día</div>
+              <div class="value" id="sales-daily">S/ 0</div>
+            </div>
+          </div>
+
+          <!-- Charts -->
+          <div class="charts-grid">
+            <div class="chart-card">
+              <h4><i class="fas fa-chart-bar"></i>Ventas por Día</h4>
+              <canvas id="salesChart" height="200"></canvas>
+            </div>
+            <div class="chart-card">
+              <h4><i class="fas fa-trophy"></i>Top Productos</h4>
+              <canvas id="topProductsChart" height="200"></canvas>
             </div>
           </div>
         </div>
 
-        <!-- Dashboard Content Inline -->
-        <div id="owner-dashboard">
-          <!-- Tab Navigation -->
-          <div class="flex gap-1 mb-6 bg-gray-100 p-1 rounded-lg">
-            <button class="px-5 py-2.5 text-sm font-semibold rounded-md tab-btn active transition-all" data-tab="inv">
-              <i class="fas fa-boxes mr-2"></i>Inventario
-            </button>
-            <button class="px-5 py-2.5 text-sm font-semibold rounded-md tab-btn transition-all" data-tab="ventas">
-              <i class="fas fa-chart-line mr-2"></i>Ventas
-            </button>
-            <button class="px-5 py-2.5 text-sm font-semibold rounded-md tab-btn transition-all" data-tab="mov">
-              <i class="fas fa-exchange-alt mr-2"></i>Movimientos
-            </button>
-            <button class="px-5 py-2.5 text-sm font-semibold rounded-md tab-btn transition-all" data-tab="trans">
-              <i class="fas fa-truck mr-2"></i>Transferir
-            </button>
+        <!-- Movements Tab -->
+        <div id="tab-mov" class="tab-panel hidden">
+          <div class="data-table-container">
+            <div class="table-header">
+              <h3><i class="fas fa-history"></i>Historial de Movimientos</h3>
+            </div>
+            <table class="data-table" id="movements-table">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Producto</th>
+                  <th class="text-right">Cantidad</th>
+                  <th class="text-center">Origen</th>
+                  <th class="text-center">Destino</th>
+                  <th>Usuario</th>
+                </tr>
+              </thead>
+              <tbody id="movements-tbody"></tbody>
+            </table>
           </div>
+        </div>
 
-          <!-- Inventory Tab -->
-          <div id="tab-inv" class="tab-panel">
-            <!-- KPI Cards -->
-            <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-              <div class="bg-gradient-to-br from-blue-500 to-blue-600 text-white p-4 rounded-xl shadow-md hover:shadow-lg transition-shadow">
-                <div class="flex items-center justify-between">
-                  <div>
-                    <div class="text-xs opacity-80">Stock Total</div>
-                    <div class="text-2xl font-bold" id="kpi-total">-</div>
-                  </div>
-                  <div class="text-3xl opacity-50"><i class="fas faBoxes"></i></div>
+        <!-- Transfer Tab -->
+        <div id="tab-trans" class="tab-panel hidden">
+          <div class="transfer-container">
+            <div class="transfer-card">
+              <div class="icon-wrapper">
+                <i class="fas fa-truck"></i>
+              </div>
+              <h3>Transferir Stock</h3>
+              <p class="subtitle">Mueve inventario entre ubicaciones</p>
+              <form id="transfer-form" class="transfer-form">
+                <div class="form-group">
+                  <label>Producto</label>
+                  <select id="transfer-product" required></select>
                 </div>
-              </div>
-              <div class="bg-gradient-to-br from-emerald-500 to-emerald-600 text-white p-4 rounded-xl shadow-md hover:shadow-lg transition-shadow">
-                <div class="flex items-center justify-between">
-                  <div>
-                    <div class="text-xs opacity-80">Manchay</div>
-                    <div class="text-2xl font-bold" id="kpi-manchay">-</div>
-                  </div>
-                  <div class="text-3xl opacity-50"><i class="fas fa-store"></i></div>
+                <div class="form-group">
+                  <label>Cantidad</label>
+                  <input type="number" id="transfer-qty" min="1" required>
                 </div>
-              </div>
-              <div class="bg-gradient-to-br from-amber-500 to-amber-600 text-white p-4 rounded-xl shadow-md hover:shadow-lg transition-shadow">
-                <div class="flex items-center justify-between">
-                  <div>
-                    <div class="text-xs opacity-80">Santa Anita</div>
-                    <div class="text-2xl font-bold" id="kpi-santa">-</div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Origen</label>
+                    <select id="transfer-origin" required></select>
                   </div>
-                  <div class="text-3xl opacity-50"><i class="fas fa-store"></i></div>
+                  <div class="form-group">
+                    <label>Destino</label>
+                    <select id="transfer-dest" required></select>
+                  </div>
                 </div>
-              </div>
-              <div class="bg-gradient-to-br from-purple-500 to-purple-600 text-white p-4 rounded-xl shadow-md hover:shadow-lg transition-shadow">
-                <div class="flex items-center justify-between">
-                  <div>
-                    <div class="text-xs opacity-80">Almacén</div>
-                    <div class="text-2xl font-bold" id="kpi-almacen">-</div>
-                  </div>
-                  <div class="text-3xl opacity-50"><i class="fas fa-warehouse"></i></div>
-                </div>
-              </div>
-              <div class="bg-gradient-to-br from-red-500 to-red-600 text-white p-4 rounded-xl shadow-md hover:shadow-lg transition-shadow">
-                <div class="flex items-center justify-between">
-                  <div>
-                    <div class="text-xs opacity-80">Bajo Stock</div>
-                    <div class="text-2xl font-bold" id="kpi-low">-</div>
-                  </div>
-                  <div class="text-3xl opacity-50"><i class="fas fa-exclamation-triangle"></i></div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Table -->
-            <div class="bg-white rounded-xl shadow-md overflow-hidden">
-              <div class="px-6 py-4 border-b bg-gray-50">
-                <h3 class="font-semibold text-gray-700"><i class="fas fa-list mr-2"></i>Distribución de Stock por Producto</h3>
-              </div>
-              <div class="overflow-x-auto">
-                <table class="w-full text-sm" id="inventory-table">
-                  <thead class="bg-gray-100 text-gray-600 uppercase text-xs">
-                    <tr>
-                      <th class="p-4 text-left">Producto</th>
-                      <th class="p-4 text-left">Categoría</th>
-                      <th class="p-4 text-right">Total</th>
-                      <th class="p-4 text-right bg-blue-50">Manchay</th>
-                      <th class="p-4 text-right bg-amber-50">Santa Anita</th>
-                      <th class="p-4 text-right bg-purple-50">Almacén</th>
-                      <th class="p-4 text-right bg-gray-50">Tienda</th>
-                      <th class="p-4 text-center">Estado</th>
-                    </tr>
-                  </thead>
-                  <tbody id="inventory-tbody" class="divide-y divide-gray-100"></tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-
-          <!-- Sales Tab -->
-          <div id="tab-ventas" class="tab-panel hidden">
-            <!-- Filters -->
-            <div class="flex items-center gap-3 mb-6">
-              <label class="text-sm font-medium text-gray-600">Período:</label>
-              <select id="dash-month" class="border-2 border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"></select>
-              <select id="dash-year" class="border-2 border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"></select>
-              <button onclick="loadDashSales()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors shadow-md">
-                <i class="fas fa-search mr-2"></i>Ver
-              </button>
-            </div>
-
-            <!-- Sales KPIs -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-              <div class="bg-gradient-to-br from-green-500 to-green-600 text-white p-5 rounded-xl shadow-lg">
-                <div class="text-sm opacity-80">Ingresos del Mes</div>
-                <div class="text-2xl font-bold" id="sales-revenue">S/ 0</div>
-              </div>
-              <div class="bg-gradient-to-br from-blue-500 to-blue-600 text-white p-5 rounded-xl shadow-lg">
-                <div class="text-sm opacity-80">Pedidos</div>
-                <div class="text-2xl font-bold" id="sales-orders">0</div>
-              </div>
-              <div class="bg-gradient-to-br from-purple-500 to-purple-600 text-white p-5 rounded-xl shadow-lg">
-                <div class="text-sm opacity-80">Productos Vendidos</div>
-                <div class="text-2xl font-bold" id="sales-products">0</div>
-              </div>
-              <div class="bg-gradient-to-br from-amber-500 to-amber-600 text-white p-5 rounded-xl shadow-lg">
-                <div class="text-sm opacity-80">Promedio/Día</div>
-                <div class="text-2xl font-bold" id="sales-daily">S/ 0</div>
-              </div>
-            </div>
-
-            <!-- Charts -->
-            <div class="grid md:grid-cols-2 gap-6 mb-6">
-              <div class="bg-white p-5 rounded-xl shadow-md">
-                <h4 class="font-semibold text-gray-700 mb-4"><i class="fas fa-chart-bar mr-2"></i>Ventas por Día</h4>
-                <canvas id="salesChart" height="200"></canvas>
-              </div>
-              <div class="bg-white p-5 rounded-xl shadow-md">
-                <h4 class="font-semibold text-gray-700 mb-4"><i class="fas fa-trophy mr-2"></i>Top Productos</h4>
-                <canvas id="topProductsChart" height="200"></canvas>
-              </div>
-            </div>
-          </div>
-
-          <!-- Movements Tab -->
-          <div id="tab-mov" class="tab-panel hidden">
-            <div class="bg-white rounded-xl shadow-md overflow-hidden">
-              <div class="px-6 py-4 border-b bg-gray-50">
-                <h3 class="font-semibold text-gray-700"><i class="fas fa-history mr-2"></i>Historial de Movimientos</h3>
-              </div>
-              <table class="w-full text-sm" id="movements-table">
-                <thead class="bg-gray-100 text-gray-600 uppercase text-xs">
-                  <tr>
-                    <th class="p-4 text-left">Fecha</th>
-                    <th class="p-4 text-left">Producto</th>
-                    <th class="p-4 text-right">Cantidad</th>
-                    <th class="p-4 text-center">Origen</th>
-                    <th class="p-4 text-center">Destino</th>
-                    <th class="p-4 text-left">Usuario</th>
-                  </tr>
-                </thead>
-                <tbody id="movements-tbody" class="divide-y divide-gray-100"></tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- Transfer Tab -->
-          <div id="tab-trans" class="tab-panel hidden">
-            <div class="max-w-lg mx-auto">
-              <div class="bg-white rounded-xl shadow-lg p-6">
-                <div class="text-center mb-6">
-                  <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <i class="fas fa-truck text-2xl text-green-600"></i>
-                  </div>
-                  <h3 class="text-xl font-bold text-gray-800">Transferir Stock</h3>
-                  <p class="text-gray-500 text-sm">Mueve inventario entre ubicaciones</p>
-                </div>
-                <form id="transfer-form" class="space-y-4">
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Producto</label>
-                    <select id="transfer-product" class="w-full border-2 border-gray-200 rounded-lg px-4 py-3 focus:border-blue-500 focus:outline-none" required></select>
-                  </div>
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Cantidad</label>
-                    <input type="number" id="transfer-qty" class="w-full border-2 border-gray-200 rounded-lg px-4 py-3 focus:border-blue-500 focus:outline-none" min="1" required>
-                  </div>
-                  <div class="grid grid-cols-2 gap-4">
-                    <div>
-                      <label class="block text-sm font-medium text-gray-700 mb-2">Origen</label>
-                      <select id="transfer-origin" class="w-full border-2 border-gray-200 rounded-lg px-4 py-3 focus:border-blue-500 focus:outline-none" required></select>
-                    </div>
-                    <div>
-                      <label class="block text-sm font-medium text-gray-700 mb-2">Destino</label>
-                      <select id="transfer-dest" class="w-full border-2 border-gray-200 rounded-lg px-4 py-3 focus:border-blue-500 focus:outline-none" required></select>
-                    </div>
-                  </div>
-                  <button type="submit" class="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-3 rounded-lg transition-all shadow-lg mt-6">
-                    <i class="fas fa-paper-plane mr-2"></i>Realizar Transferencia
-                  </button>
-                </form>
-              </div>
+                <button type="submit" class="btn-submit"><i class="fas fa-paper-plane"></i>Realizar Transferencia</button>
+              </form>
             </div>
           </div>
         </div>
+
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <script>
           // Owner Dashboard Inline Script with Beautiful Design
@@ -295,15 +254,19 @@
 
             function renderInvTable(ps) {
               const b = document.getElementById('inventory-tbody');
-              b.innerHTML = ps.map(p => `<tr class="hover:bg-gray-50 transition-colors">
-                <td class="p-4 font-medium text-gray-800">${p.name}</td>
-                <td class="p-4 text-gray-600"><span class="bg-gray-100 px-2 py-1 rounded text-xs">${p.category_name||'-'}</span></td>
-                <td class="p-4 text-right font-bold text-gray-800">${p.stock_total}</td>
-                <td class="p-4 text-right bg-blue-50 text-blue-700 font-medium">${p.stock_manchay||0}</td>
-                <td class="p-4 text-right bg-amber-50 text-amber-700 font-medium">${p.stock_santa_anita||0}</td>
-                <td class="p-4 text-right bg-purple-50 text-purple-700 font-medium">${p.stock_almacen||0}</td>
-                <td class="p-4 text-right bg-gray-50 text-gray-700">${p.stock_tienda||0}</td>
-                <td class="p-4 text-center"><span class="px-3 py-1.5 rounded-full text-xs font-semibold ${p.status==='Agotado'?'bg-red-100 text-red-700':p.status==='Bajo stock'?'bg-yellow-100 text-yellow-700':'bg-green-100 text-green-700'}">${p.status}</span></td>
+              if (!ps || ps.length === 0) {
+                b.innerHTML = '<tr><td colspan="8" class="empty-state">No hay productos en inventario</td></tr>';
+                return;
+              }
+              b.innerHTML = ps.map(p => `<tr>
+                <td class="font-medium">${p.name}</td>
+                <td><span class="category-tag">${p.category_name||'-'}</span></td>
+                <td class="text-right font-medium">${p.stock_total}</td>
+                <td class="text-right bg-manchay">${p.stock_manchay||0}</td>
+                <td class="text-right bg-santa">${p.stock_santa_anita||0}</td>
+                <td class="text-right bg-almacen">${p.stock_almacen||0}</td>
+                <td class="text-right bg-tienda">${p.stock_tienda||0}</td>
+                <td class="text-center"><span class="status-badge ${p.status==='Agotado'?'out':p.status==='Bajo stock'?'low':'normal'}">${p.status}</span></td>
               </tr>`).join('');
             }
 
@@ -325,14 +288,19 @@
                 const r = await fetch(API+'/dashboard/movements?limit=50', {headers: auth()});
                 if(!r.ok) return;
                 const d = await r.json();
-                document.getElementById('movements-tbody').innerHTML = d.length ? d.map(m => `<tr class="hover:bg-gray-50">
-                  <td class="p-4 text-gray-600">${new Date(m.created_at).toLocaleDateString()}</td>
-                  <td class="p-4 font-medium text-gray-800">${m.product_name}</td>
-                  <td class="p-4 text-right font-bold text-gray-800">${m.quantity}</td>
-                  <td class="p-4 text-center"><span class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs">${locNames[m.origin]||m.origin}</span></td>
-                  <td class="p-4 text-center"><span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs">${locNames[m.destination]||m.destination}</span></td>
-                  <td class="p-4 text-gray-600">${m.user_name||'-'}</td>
-                </tr>`).join('') : '<tr><td colspan="6" class="p-8 text-center text-gray-500">No hay movimientos registrados</td></tr>';
+                const tbody = document.getElementById('movements-tbody');
+                if (!d || d.length === 0) {
+                  tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No hay movimientos registrados</td></tr>';
+                  return;
+                }
+                tbody.innerHTML = d.map(m => `<tr>
+                  <td>${new Date(m.created_at).toLocaleDateString()}</td>
+                  <td class="font-medium">${m.product_name}</td>
+                  <td class="text-right font-medium">${m.quantity}</td>
+                  <td class="text-center"><span class="status-badge origin">${locNames[m.origin]||m.origin}</span></td>
+                  <td class="text-center"><span class="status-badge destination">${locNames[m.destination]||m.destination}</span></td>
+                  <td>${m.user_name||'-'}</td>
+                </tr>`).join('');
               } catch(e) { console.error(e); }
             }
 
