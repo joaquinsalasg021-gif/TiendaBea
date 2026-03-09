@@ -425,7 +425,8 @@ app.get('/api/products', (req, res) => {
 app.get('/api/products/:id', (req, res) => {
   try {
     const product = db().prepare(`
-      SELECT p.*, c.name as category_name 
+      SELECT p.*, c.name as category_name,
+        (COALESCE(p.stock_manchay, 0) + COALESCE(p.stock_santa_anita, 0) + COALESCE(p.stock_almacen, 0) + COALESCE(p.stock_tienda, 0)) as stock
       FROM products p 
       LEFT JOIN categories c ON p.category_id = c.id 
       WHERE p.id = ?
@@ -668,9 +669,14 @@ app.put('/api/products/:id/stock', authMiddleware, requireRole('admin', 'owner')
       return res.status(404).json({ error: 'Product not found' });
     }
     
-    const newStock = Math.max(0, product.stock + parseInt(delta));
+    // Calculate total stock from all locations
+    const totalStock = (product.stock_manchay || 0) + (product.stock_santa_anita || 0) + (product.stock_almacen || 0) + (product.stock_tienda || 0);
+    const newStock = Math.max(0, totalStock + parseInt(delta));
     
-    db().prepare('UPDATE products SET stock = ? WHERE id = ?').run(newStock, id);
+    // Update stock in almacen by default (you might want to add location parameter)
+    const newAlmacenStock = Math.max(0, (product.stock_almacen || 0) + parseInt(delta));
+    
+    db().prepare('UPDATE products SET stock = ?, stock_almacen = ? WHERE id = ?').run(newStock, newAlmacenStock, id);
     
     const updatedProduct = db().prepare('SELECT * FROM products WHERE id = ?').get(id);
     res.json(updatedProduct);
@@ -686,7 +692,8 @@ app.put('/api/products/:id/stock', authMiddleware, requireRole('admin', 'owner')
 app.get('/api/cart', authMiddleware, (req, res) => {
   try {
     const cartItems = db().prepare(`
-      SELECT ci.*, p.name, p.price, p.image_url, p.stock
+      SELECT ci.*, p.name, p.price, p.image_url,
+        (COALESCE(p.stock_manchay, 0) + COALESCE(p.stock_santa_anita, 0) + COALESCE(p.stock_almacen, 0) + COALESCE(p.stock_tienda, 0)) as stock
       FROM cart_items ci
       JOIN products p ON ci.product_id = p.id
       WHERE ci.user_id = ?
@@ -747,7 +754,10 @@ app.put('/api/cart/update/:id', authMiddleware, (req, res) => {
       return res.status(404).json({ error: 'Cart item not found' });
     }
 
-    const product = db().prepare('SELECT stock FROM products WHERE id = ?').get(cartItem.product_id);
+    const product = db().prepare(`
+      SELECT (COALESCE(stock_manchay, 0) + COALESCE(stock_santa_anita, 0) + COALESCE(stock_almacen, 0) + COALESCE(stock_tienda, 0)) as stock 
+      FROM products WHERE id = ?
+    `).get(cartItem.product_id);
     if (quantity > product.stock) {
       return res.status(400).json({ error: 'Not enough stock' });
     }
@@ -808,7 +818,8 @@ app.post('/api/orders', authMiddleware, async (req, res) => {
 
     // Get cart items
     const cartItems = db().prepare(`
-      SELECT ci.*, p.name, p.price, p.stock
+      SELECT ci.*, p.name, p.price,
+        (COALESCE(p.stock_manchay, 0) + COALESCE(p.stock_santa_anita, 0) + COALESCE(p.stock_almacen, 0) + COALESCE(p.stock_tienda, 0)) as stock
       FROM cart_items ci
       JOIN products p ON ci.product_id = p.id
       WHERE ci.user_id = ?
