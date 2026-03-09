@@ -446,35 +446,44 @@
       
       <!-- Banners Tab -->
       <div id="banners-tab" class="admin-content d-none">
-        <h2>Gestión de Banners</h2>
-        <p class="mb-3">Sube banners para el carrusel de la tienda. Formatos permitidos: PNG, JPG</p>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <div>
+            <h2 style="margin: 0; color: #333;">Gestión de Banners</h2>
+            <p style="margin: 5px 0 0; color: #666;">Sube banners para el carrusel de la tienda</p>
+          </div>
+        </div>
         
         <!-- Add Banner Form -->
-        <div class="card mb-3">
-          <h3>Agregar Banner</h3>
-          <form id="banner-form" enctype="multipart/form-data">
-            <div class="form-group">
-              <label class="form-label" for="banner_image">Imagen (PNG/JPG) *</label>
-              <input type="file" id="banner_image" class="form-input" accept="image/png,image/jpeg,image/jpg" required>
+        <div class="card mb-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 25px; border-radius: 12px; color: white;">
+          <h3 style="margin: 0 0 20px; font-size: 1.3rem;">➕ Agregar Nuevo Banner</h3>
+          <form id="banner-form" enctype="multipart/form-data" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div class="form-group" style="grid-column: span 2;">
+              <label class="form-label" for="banner_image" style="color: white;">Imagen (PNG/JPG) *</label>
+              <input type="file" id="banner_image" class="form-input" accept="image/png,image/jpeg,image/jpg" required style="background: rgba(255,255,255,0.95); border: 2px dashed rgba(255,255,255,0.5);">
             </div>
             <div class="form-group">
-              <label class="form-label" for="banner_url">URL de destino (opcional)</label>
+              <label class="form-label" for="banner_url" style="color: white;">🌐 URL de destino</label>
               <input type="url" id="banner_url" class="form-input" placeholder="https://ejemplo.com">
             </div>
             <div class="form-group">
-              <label class="form-label" for="banner_text">Texto (opcional)</label>
-              <input type="text" id="banner_text" class="form-input" placeholder="Texto que aparece sobre el banner">
+              <label class="form-label" for="banner_text" style="color: white;">📝 Texto</label>
+              <input type="text" id="banner_text" class="form-input" placeholder="Texto sobre el banner">
             </div>
             <div class="form-group">
-              <label class="form-label" for="banner_order">Orden</label>
+              <label class="form-label" for="banner_order" style="color: white;">🔢 Orden</label>
               <input type="number" id="banner_order" class="form-input" value="0" min="0">
             </div>
-            <div class="form-group">
-              <label class="form-label" for="banner_active">
-                <input type="checkbox" id="banner_active" checked> Activo
+            <div class="form-group" style="display: flex; align-items: center;">
+              <label style="color: white; display: flex; align-items: center; cursor: pointer;">
+                <input type="checkbox" id="banner_active" checked style="width: 20px; height: 20px; margin-right: 10px;"> 
+                ✅ Activo
               </label>
             </div>
-            <button type="submit" class="btn btn-primary">Subir Banner</button>
+            <div style="grid-column: span 2;">
+              <button type="submit" class="btn" style="width: 100%; background: white; color: #667eea; font-weight: bold; padding: 12px; border-radius: 8px;">
+                🚀 Subir Banner
+              </button>
+            </div>
           </form>
         </div>
         
@@ -753,26 +762,51 @@
         const container = document.getElementById('banners-list');
         
         if (!banners.length) {
-          container.innerHTML = '<p>No hay banners. Sube el primero!</p>';
+          container.innerHTML = `
+            <div style="text-align: center; padding: 40px; background: #f8f9fa; border-radius: 12px; border: 2px dashed #dee2e6;">
+              <div style="font-size: 3rem; margin-bottom: 10px;">🖼️</div>
+              <h3 style="color: #6c757d; margin: 0 0 10px;">No hay banners</h3>
+              <p style="color: #adb5bd;">Sube el primero para el carrusel</p>
+            </div>
+          `;
           return;
         }
         
-        let html = '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">';
+        let html = `<h3 style="margin: 20px 0 15px; color: #333;">📋 Banners Subidos (${banners.length})</h3>`;
+        html += '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">';
         
         banners.forEach(banner => {
+          const statusColor = banner.is_active ? '#28a745' : '#dc3545';
+          const statusBg = banner.is_active ? '#d4edda' : '#f8d7da';
           html += `
-            <div class="card" style="position: relative;">
-              <img src="${banner.image_url}" alt="Banner" style="width: 100%; height: 150px; object-fit: cover;">
-              <div style="padding: 10px;">
-                <p><strong>Orden:</strong> ${banner.order_index}</p>
-                <p><strong>URL:</strong> ${banner.url || 'Sin URL'}</p>
-                <p><strong>Texto:</strong> ${banner.text || 'Sin texto'}</p>
-                <p><strong>Estado:</strong> ${banner.is_active ? 'Activo' : 'Inactivo'}</p>
-                <div style="display: flex; gap: 10px; margin-top: 10px;">
-                  <button class="btn btn-sm btn-primary" onclick="BannerPage.toggleActive(${banner.id}, ${banner.is_active ? 0 : 1})">
-                    ${banner.is_active ? 'Desactivar' : 'Activar'}
+            <div class="card" style="border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+              <div style="position: relative;">
+                <img src="${banner.image_url}" alt="Banner" style="width: 100%; height: 160px; object-fit: cover;">
+                <span style="position: absolute; top: 10px; right: 10px; background: ${statusBg}; color: ${statusColor}; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: bold;">
+                  ${banner.is_active ? '✅ Activo' : '❌ Inactivo'}
+                </span>
+              </div>
+              <div style="padding: 15px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                  <span style="color: #6c757d; font-size: 0.9rem;">🔢 Orden: <strong>${banner.order_index}</strong></span>
+                </div>
+                <p style="margin: 5px 0; font-size: 0.9rem;">
+                  <span style="color: #6c757d;">🌐 URL:</span> 
+                  ${banner.url ? `<a href="${banner.url}" target="_blank" style="color: #007bff; text-decoration: none;">${banner.url.substring(0, 25)}...</a>` : '<span style="color: #adb5bd;">Sin URL</span>'}
+                </p>
+                <p style="margin: 5px 0 15px; font-size: 0.9rem;">
+                  <span style="color: #6c757d;">📝 Texto:</span> 
+                  ${banner.text ? `<strong>${banner.text}</strong>` : '<span style="color: #adb5bd;">Sin texto</span>'}
+                </p>
+                <div style="display: flex; gap: 8px;">
+                  <button class="btn btn-sm" onclick="BannerPage.toggleActive(${banner.id}, ${banner.is_active ? 0 : 1})" 
+                    style="flex: 1; background: ${banner.is_active ? '#ffc107' : '#28a745'}; color: ${banner.is_active ? '#000' : '#fff'}; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold;">
+                    ${banner.is_active ? '⏸️ Pausar' : '▶️ Activar'}
                   </button>
-                  <button class="btn btn-sm btn-danger" onclick="BannerPage.deleteBanner(${banner.id})">Eliminar</button>
+                  <button class="btn btn-sm" onclick="BannerPage.deleteBanner(${banner.id})" 
+                    style="background: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold;">
+                    🗑️
+                  </button>
                 </div>
               </div>
             </div>
