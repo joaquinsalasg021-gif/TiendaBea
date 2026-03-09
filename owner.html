@@ -88,8 +88,7 @@
                   <th class="text-right">Total</th>
                   <th class="text-right">Manchay</th>
                   <th class="text-right">Santa Anita</th>
-                  <th class="text-right">Almacén</th>
-                  <th class="text-right">Tienda</th>
+                  <th class="text-right">Almacén/Tienda Web</th>
                   <th class="text-center">Estado</th>
                 </tr>
               </thead>
@@ -203,8 +202,8 @@
           (function() {
             const API = '/api';
             let salesChart = null, topChart = null;
-            const locs = ['manchay', 'santa_anita', 'almacen', 'tienda'];
-            const locNames = {manchay: 'Manchay', santa_anita: 'Santa Anita', almacen: 'Almacén', tienda: 'Tienda Web'};
+            const locs = ['manchay', 'santa_anita', 'almacen'];
+            const locNames = {manchay: 'Manchay', santa_anita: 'Santa Anita', almacen: 'Almacén/Tienda Web'};
 
             // Auth
             function auth() {
@@ -247,7 +246,7 @@
               document.getElementById('kpi-total').textContent = t.totalStock;
               document.getElementById('kpi-manchay').textContent = t.manchayStock;
               document.getElementById('kpi-santa').textContent = t.santaAnitaStock;
-              document.getElementById('kpi-almacen').textContent = t.almacenStock;
+              document.getElementById('kpi-almacen').textContent = t.almacenStock + (t.tiendaStock || 0);
               document.getElementById('kpi-low').textContent = t.lowStock;
               document.getElementById('total-stock-kpi').textContent = t.totalStock;
             }
@@ -255,7 +254,7 @@
             function renderInvTable(ps) {
               const b = document.getElementById('inventory-tbody');
               if (!ps || ps.length === 0) {
-                b.innerHTML = '<tr><td colspan="8" class="empty-state">No hay productos en inventario</td></tr>';
+                b.innerHTML = '<tr><td colspan="7" class="empty-state">No hay productos en inventario</td></tr>';
                 return;
               }
               b.innerHTML = ps.map(p => `<tr>
@@ -264,8 +263,7 @@
                 <td class="text-right font-medium">${p.stock_total}</td>
                 <td class="text-right bg-manchay">${p.stock_manchay||0}</td>
                 <td class="text-right bg-santa">${p.stock_santa_anita||0}</td>
-                <td class="text-right bg-almacen">${p.stock_almacen||0}</td>
-                <td class="text-right bg-tienda">${p.stock_tienda||0}</td>
+                <td class="text-right bg-almacen">${(p.stock_almacen||0) + (p.stock_tienda||0)}</td>
                 <td class="text-center"><span class="status-badge ${p.status==='Agotado'?'out':p.status==='Bajo stock'?'low':'normal'}">${p.status}</span></td>
               </tr>`).join('');
             }
