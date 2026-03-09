@@ -385,7 +385,7 @@ app.get('/api/products', (req, res) => {
     
     let query = `
       SELECT p.*, c.name as category_name,
-        (COALESCE(p.stock_manchay, 0) + COALESCE(p.stock_santa_anita, 0) + COALESCE(p.stock_almacen, 0) + COALESCE(p.stock_tienda, 0)) as stock
+        (COALESCE(p.stock_almacen, 0) + COALESCE(p.stock_tienda, 0)) as stock
       FROM products p 
       LEFT JOIN categories c ON p.category_id = c.id 
       WHERE 1=1
@@ -426,7 +426,7 @@ app.get('/api/products/:id', (req, res) => {
   try {
     const product = db().prepare(`
       SELECT p.*, c.name as category_name,
-        (COALESCE(p.stock_manchay, 0) + COALESCE(p.stock_santa_anita, 0) + COALESCE(p.stock_almacen, 0) + COALESCE(p.stock_tienda, 0)) as stock
+        (COALESCE(p.stock_almacen, 0) + COALESCE(p.stock_tienda, 0)) as stock
       FROM products p 
       LEFT JOIN categories c ON p.category_id = c.id 
       WHERE p.id = ?
@@ -693,7 +693,7 @@ app.get('/api/cart', authMiddleware, (req, res) => {
   try {
     const cartItems = db().prepare(`
       SELECT ci.*, p.name, p.price, p.image_url,
-        (COALESCE(p.stock_manchay, 0) + COALESCE(p.stock_santa_anita, 0) + COALESCE(p.stock_almacen, 0) + COALESCE(p.stock_tienda, 0)) as stock
+        (COALESCE(p.stock_almacen, 0) + COALESCE(p.stock_tienda, 0)) as stock
       FROM cart_items ci
       JOIN products p ON ci.product_id = p.id
       WHERE ci.user_id = ?
@@ -717,8 +717,8 @@ app.post('/api/cart/add', authMiddleware, (req, res) => {
       return res.status(404).json({ error: 'Product not found' });
     }
 
-    // Calculate total stock from all locations
-    const totalStock = (product.stock_manchay || 0) + (product.stock_santa_anita || 0) + (product.stock_almacen || 0) + (product.stock_tienda || 0);
+    // Calculate stock from Almacén/Tienda Web (for web store)
+    const totalStock = (product.stock_almacen || 0) + (product.stock_tienda || 0);
 
     // Check existing cart item
     const existingItem = db().prepare('SELECT * FROM cart_items WHERE user_id = ? AND product_id = ?').get(req.user.id, product_id);
@@ -726,12 +726,12 @@ app.post('/api/cart/add', authMiddleware, (req, res) => {
     if (existingItem) {
       const newQuantity = existingItem.quantity + quantity;
       if (newQuantity > totalStock) {
-        return res.status(400).json({ error: 'Not enough stock' });
+        return res.status(400).json({ error: 'Not enough stock in Almacén' });
       }
       db().prepare('UPDATE cart_items SET quantity = ? WHERE id = ?').run(newQuantity, existingItem.id);
     } else {
       if (quantity > totalStock) {
-        return res.status(400).json({ error: 'Not enough stock' });
+        return res.status(400).json({ error: 'Not enough stock in Almacén' });
       }
       db().prepare('INSERT INTO cart_items (user_id, product_id, quantity) VALUES (?, ?, ?)').run(req.user.id, product_id, quantity);
     }
@@ -755,7 +755,7 @@ app.put('/api/cart/update/:id', authMiddleware, (req, res) => {
     }
 
     const product = db().prepare(`
-      SELECT (COALESCE(stock_manchay, 0) + COALESCE(stock_santa_anita, 0) + COALESCE(stock_almacen, 0) + COALESCE(stock_tienda, 0)) as stock 
+      SELECT (COALESCE(stock_almacen, 0) + COALESCE(stock_tienda, 0)) as stock 
       FROM products WHERE id = ?
     `).get(cartItem.product_id);
     if (quantity > product.stock) {
@@ -819,7 +819,7 @@ app.post('/api/orders', authMiddleware, async (req, res) => {
     // Get cart items
     const cartItems = db().prepare(`
       SELECT ci.*, p.name, p.price,
-        (COALESCE(p.stock_manchay, 0) + COALESCE(p.stock_santa_anita, 0) + COALESCE(p.stock_almacen, 0) + COALESCE(p.stock_tienda, 0)) as stock
+        (COALESCE(p.stock_almacen, 0) + COALESCE(p.stock_tienda, 0)) as stock
       FROM cart_items ci
       JOIN products p ON ci.product_id = p.id
       WHERE ci.user_id = ?
@@ -870,12 +870,12 @@ app.post('/api/orders', authMiddleware, async (req, res) => {
       VALUES (?, ?, ?, ?, ?)
     `);
 
-    const updateStock = db().prepare('UPDATE products SET stock = stock - ? WHERE id = ?');
+    const updateStock = db().prepare('UPDATE products SET stock_almacen = stock_almacen - ?, stock = stock - ? WHERE id = ?');
 
     for (const item of cartItems) {
       const subtotal = item.price * item.quantity;
       insertOrderItem.run(orderId, item.product_id, item.quantity, item.price, subtotal);
-      updateStock.run(item.quantity, item.product_id);
+      updateStock.run(item.quantity, item.quantity, item.product_id);
     }
     
     // Verify order items were saved
