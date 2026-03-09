@@ -1443,6 +1443,13 @@ app.get('/api/dashboard/sales', authMiddleware, requireRole('admin', 'owner'), (
       WHERE created_at >= ? AND created_at <= ?
     `).get(startDate, endDate).count;
 
+    // Get pending orders (agendado) count
+    const pendingOrdersCount = db().prepare(`
+      SELECT COUNT(*) as count FROM orders 
+      WHERE created_at >= ? AND created_at <= ?
+        AND status = 'agendado'
+    `).get(startDate, endDate).count;
+
     // Calculate totals
     const totalOrders = orders.length;
     const totalRevenue = orders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
@@ -1513,6 +1520,7 @@ app.get('/api/dashboard/sales', authMiddleware, requireRole('admin', 'owner'), (
       year: targetYear,
       totalOrders,
       totalOrdersAll: allOrdersCount,
+      pendingOrders: pendingOrdersCount,
       totalRevenue: totalRevenue.toFixed(2),
       productsSold,
       topProduct,

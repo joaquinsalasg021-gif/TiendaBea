@@ -118,6 +118,10 @@
               <div class="label">Pedidos</div>
               <div class="value" id="sales-orders">0</div>
             </div>
+            <div class="sales-kpi kpi-pending" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+              <div class="label">Pedidos Pendientes</div>
+              <div class="value" id="sales-pending">0</div>
+            </div>
             <div class="sales-kpi kpi-products">
               <div class="label">Productos Vendidos</div>
               <div class="value" id="sales-products">0</div>
@@ -277,6 +281,7 @@
                 const d = await r.json();
                 document.getElementById('sales-revenue').textContent = 'S/ ' + (d.totalRevenue||0).toFixed(2);
                 document.getElementById('sales-orders').textContent = d.totalOrders||0;
+                document.getElementById('sales-pending').textContent = d.pendingOrders||0;
                 document.getElementById('sales-products').textContent = d.totalProductsSold||0;
                 document.getElementById('sales-daily').textContent = 'S/ ' + (d.dailyAverage||0).toFixed(2);
               } catch(e) { console.error(e); }
