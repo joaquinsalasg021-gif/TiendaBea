@@ -45,8 +45,6 @@
         <!-- Tab Navigation -->
         <div class="dashboard-tabs">
           <button class="tab-btn active" data-tab="inv"><i class="fas fa-boxes"></i>Inventario</button>
-          <button class="tab-btn" data-tab="ventas"><i class="fas fa-chart-line"></i>Ventas</button>
-          <button class="tab-btn" data-tab="mov"><i class="fas fa-exchange-alt"></i>Movimientos</button>
           <button class="tab-btn" data-tab="trans"><i class="fas fa-truck"></i>Transferir</button>
         </div>
 
@@ -94,75 +92,6 @@
                 </tr>
               </thead>
               <tbody id="inventory-tbody"></tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Sales Tab -->
-        <div id="tab-ventas" class="tab-panel hidden">
-          <!-- Filters -->
-          <div class="filters-bar">
-            <label>Período:</label>
-            <select id="dash-month"></select>
-            <select id="dash-year"></select>
-            <button class="btn-filter" onclick="loadDashSales()"><i class="fas fa-search"></i>Ver</button>
-          </div>
-
-          <!-- Sales KPIs -->
-          <div class="sales-kpi-grid">
-            <div class="sales-kpi kpi-revenue">
-              <div class="label">Ingresos del Mes</div>
-              <div class="value" id="sales-revenue">S/ 0</div>
-            </div>
-            <div class="sales-kpi kpi-orders">
-              <div class="label">Pedidos</div>
-              <div class="value" id="sales-orders">0</div>
-            </div>
-            <div class="sales-kpi kpi-pending" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-              <div class="label">Pedidos Pendientes</div>
-              <div class="value" id="sales-pending">0</div>
-            </div>
-            <div class="sales-kpi kpi-products">
-              <div class="label">Productos Vendidos</div>
-              <div class="value" id="sales-products">0</div>
-            </div>
-            <div class="sales-kpi kpi-daily">
-              <div class="label">Promedio/Día</div>
-              <div class="value" id="sales-daily">S/ 0</div>
-            </div>
-          </div>
-
-          <!-- Charts -->
-          <div class="charts-grid">
-            <div class="chart-card">
-              <h4><i class="fas fa-chart-bar"></i>Ventas por Día</h4>
-              <canvas id="salesChart" height="200"></canvas>
-            </div>
-            <div class="chart-card">
-              <h4><i class="fas fa-trophy"></i>Top Productos</h4>
-              <canvas id="topProductsChart" height="200"></canvas>
-            </div>
-          </div>
-        </div>
-
-        <!-- Movements Tab -->
-        <div id="tab-mov" class="tab-panel hidden">
-          <div class="data-table-container">
-            <div class="table-header">
-              <h3><i class="fas fa-history"></i>Historial de Movimientos</h3>
-            </div>
-            <table class="data-table" id="movements-table">
-              <thead>
-                <tr>
-                  <th>Fecha</th>
-                  <th>Producto</th>
-                  <th class="text-right">Cantidad</th>
-                  <th class="text-center">Origen</th>
-                  <th class="text-center">Destino</th>
-                  <th>Usuario</th>
-                </tr>
-              </thead>
-              <tbody id="movements-tbody"></tbody>
             </table>
           </div>
         </div>
@@ -273,41 +202,6 @@
               </tr>`).join('');
             }
 
-            window.loadDashSales = async function() {
-              const m = document.getElementById('dash-month').value, y = document.getElementById('dash-year').value;
-              try {
-                const r = await fetch(API+'/dashboard/sales?month='+m+'&year='+y, {headers: auth()});
-                if(!r.ok) return alert('Error cargando ventas');
-                const d = await r.json();
-                document.getElementById('sales-revenue').textContent = 'S/ ' + (d.totalRevenue||0).toFixed(2);
-                document.getElementById('sales-orders').textContent = d.totalOrders||0;
-                document.getElementById('sales-pending').textContent = d.pendingOrders||0;
-                document.getElementById('sales-products').textContent = d.totalProductsSold||0;
-                document.getElementById('sales-daily').textContent = 'S/ ' + (d.dailyAverage||0).toFixed(2);
-              } catch(e) { console.error(e); }
-            };
-
-            async function loadMovements() {
-              try {
-                const r = await fetch(API+'/dashboard/movements?limit=50', {headers: auth()});
-                if(!r.ok) return;
-                const d = await r.json();
-                const tbody = document.getElementById('movements-tbody');
-                if (!d || d.length === 0) {
-                  tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No hay movimientos registrados</td></tr>';
-                  return;
-                }
-                tbody.innerHTML = d.map(m => `<tr>
-                  <td>${new Date(m.created_at).toLocaleDateString()}</td>
-                  <td class="font-medium">${m.product_name}</td>
-                  <td class="text-right font-medium">${m.quantity}</td>
-                  <td class="text-center"><span class="status-badge origin">${locNames[m.origin]||m.origin}</span></td>
-                  <td class="text-center"><span class="status-badge destination">${locNames[m.destination]||m.destination}</span></td>
-                  <td>${m.user_name||'-'}</td>
-                </tr>`).join('');
-              } catch(e) { console.error(e); }
-            }
-
             async function loadTransProducts() {
               try {
                 const r = await fetch(API+'/dashboard/products', {headers: auth()});
@@ -337,12 +231,9 @@
                 if(!r.ok) { const e = await r.json(); return alert(e.error || 'Error'); }
                 alert('✓ Transferencia exitosa');
                 document.getElementById('transfer-qty').value = '';
-                loadInv(); loadMovements();
+                loadInv();
               } catch(e) { alert('Error'); }
             }
-
-            // Load movements when tab shown
-            document.querySelector('[data-tab="mov"]').onclick = () => { loadMovements(); };
           })();
         </script>
       </div>
