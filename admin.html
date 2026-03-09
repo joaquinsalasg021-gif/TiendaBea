@@ -98,8 +98,21 @@
         </div>
         
         <div class="form-group">
-          <label class="form-label" for="product_stock">Stock</label>
-          <input type="number" id="product_stock" class="form-input" value="0">
+          <label class="form-label">Stock por Ubicación</label>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div>
+              <input type="number" id="stock_manchay" class="form-input" placeholder="Manchay" value="0" min="0">
+            </div>
+            <div>
+              <input type="number" id="stock_santa_anita" class="form-input" placeholder="Santa Anita" value="0" min="0">
+            </div>
+            <div>
+              <input type="number" id="stock_almacen" class="form-input" placeholder="Almacén" value="0" min="0">
+            </div>
+            <div>
+              <input type="number" id="stock_tienda" class="form-input" placeholder="Tienda Web" value="0" min="0">
+            </div>
+          </div>
         </div>
         
         <div class="form-group">
@@ -139,26 +152,33 @@
           .then(r => r.json())
           .then(categories => {
             const select = document.getElementById('product_category');
-            select.innerHTML = '<option value="">Select Category</option>';
+            select.innerHTML = '<option value="">Seleccionar Categoría</option>';
             categories.forEach(cat => {
               select.innerHTML += `<option value="${cat.id}">${cat.name}</option>`;
             });
             
             if (product) {
-              title.textContent = 'Edit Product';
+              title.textContent = 'Editar Producto';
               document.getElementById('product_id').value = product.id;
               document.getElementById('product_id_display').value = product.id;
               document.getElementById('product_name').value = product.name;
               document.getElementById('product_description').value = product.description || '';
               document.getElementById('product_price').value = product.price;
-              document.getElementById('product_stock').value = product.stock;
+              document.getElementById('stock_manchay').value = product.stock_manchay || 0;
+              document.getElementById('stock_santa_anita').value = product.stock_santa_anita || 0;
+              document.getElementById('stock_almacen').value = product.stock_almacen || 0;
+              document.getElementById('stock_tienda').value = product.stock_tienda || 0;
               document.getElementById('product_category').value = product.category_id || '';
               document.getElementById('product_active').checked = product.is_active === 1;
             } else {
-              title.textContent = 'Add Product';
+              title.textContent = 'Agregar Producto';
               form.reset();
               document.getElementById('product_id').value = '';
               document.getElementById('product_id_display').value = '';
+              document.getElementById('stock_manchay').value = 0;
+              document.getElementById('stock_santa_anita').value = 0;
+              document.getElementById('stock_almacen').value = 0;
+              document.getElementById('stock_tienda').value = 0;
             }
           });
         
@@ -174,11 +194,22 @@
         const newProductId = document.getElementById('product_id_display').value.trim();
         const formData = new FormData();
         
+        // Get stock values from each location
+        const stockManchay = parseInt(document.getElementById('stock_manchay').value) || 0;
+        const stockSantaAnita = parseInt(document.getElementById('stock_santa_anita').value) || 0;
+        const stockAlmacen = parseInt(document.getElementById('stock_almacen').value) || 0;
+        const stockTienda = parseInt(document.getElementById('stock_tienda').value) || 0;
+        const totalStock = stockManchay + stockSantaAnita + stockAlmacen + stockTienda;
+        
         formData.append('id', newProductId || productId);
         formData.append('name', document.getElementById('product_name').value);
         formData.append('description', document.getElementById('product_description').value);
         formData.append('price', document.getElementById('product_price').value);
-        formData.append('stock', document.getElementById('product_stock').value);
+        formData.append('stock', totalStock);
+        formData.append('stock_manchay', stockManchay);
+        formData.append('stock_santa_anita', stockSantaAnita);
+        formData.append('stock_almacen', stockAlmacen);
+        formData.append('stock_tienda', stockTienda);
         formData.append('category_id', document.getElementById('product_category').value);
         formData.append('is_active', document.getElementById('product_active').checked ? '1' : '0');
         
