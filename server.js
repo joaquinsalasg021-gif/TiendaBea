@@ -969,7 +969,7 @@ app.post('/api/orders', authMiddleware, async (req, res) => {
 
     const result = db().prepare(`
       INSERT INTO orders (user_id, order_code, status, scheduled_date, scheduled_time, total_amount, notes, packaging, dni, shipping_agency, province)
-      VALUES (?, ?, 'agendado', ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, 'en_proceso', ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(req.user.id, orderCode, scheduled_date, scheduled_time || null, total, notes || null, packaging || null, dni, shipping_agency, province);
 
     // Get order ID using order code (more reliable than lastInsertRowid)
@@ -987,6 +987,14 @@ app.post('/api/orders', authMiddleware, async (req, res) => {
     for (const item of cartItems) {
       const subtotal = item.price * item.quantity;
       insertOrderItem.run(orderId, item.product_id, item.quantity, item.price, subtotal);
+      
+      // Deduct stock from almacen when order is created (status is now en_proceso)
+      db().prepare(`
+        UPDATE products 
+        SET stock_almacen = stock_almacen - ?, 
+            stock = stock - ? 
+        WHERE id = ?
+      `).run(item.quantity, item.quantity, item.product_id);
     }
     
     // Verify order items were saved
