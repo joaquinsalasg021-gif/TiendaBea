@@ -1429,17 +1429,22 @@ app.get('/api/dashboard/sales', authMiddleware, requireRole('admin', 'owner'), (
     const startDate = `${targetYear}-${String(targetMonth).padStart(2, '0')}-01`;
     const endDate = `${targetYear}-${String(targetMonth).padStart(2, '0')}-31`;
 
-    // Get orders for the month
+    // Get orders for the month (only en_proceso and enviado count as sales)
     const orders = db().prepare(`
       SELECT * FROM orders 
       WHERE created_at >= ? AND created_at <= ?
+        AND status IN ('en_proceso', 'enviado')
       ORDER BY created_at DESC
     `).all(startDate, endDate);
 
+    // Get all orders count (for reference, not counted as sales)
+    const allOrdersCount = db().prepare(`
+      SELECT COUNT(*) as count FROM orders 
+      WHERE created_at >= ? AND created_at <= ?
+    `).get(startDate, endDate).count;
+
     // Calculate totals
     const totalOrders = orders.length;
-    const paidOrders = orders.filter(o => o.status !== 'pendiente' && o.status !== 'cancelado').length;
-    const unpaidOrders = totalOrders - paidOrders;
     const totalRevenue = orders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
 
     // Get products sold
@@ -1507,8 +1512,7 @@ app.get('/api/dashboard/sales', authMiddleware, requireRole('admin', 'owner'), (
       month: targetMonth,
       year: targetYear,
       totalOrders,
-      paidOrders,
-      unpaidOrders,
+      totalOrdersAll: allOrdersCount,
       totalRevenue: totalRevenue.toFixed(2),
       productsSold,
       topProduct,
