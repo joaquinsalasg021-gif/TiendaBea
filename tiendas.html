@@ -9,80 +9,30 @@
   <link rel="stylesheet" href="/css/navbar.css">
   <link rel="stylesheet" href="/css/footer.css">
   <style>
-    .tiendas-container {
-      max-width: 900px;
+    :root {
+      --primary: #8B5CF6;
+      --primary-dark: #6B21A8;
+      --secondary: #EC4899;
+      --success: #10B981;
+      --white: #FFFFFF;
+      --gray: #6B7280;
+      --gray-light: #9CA3AF;
+    }
+    
+    * {
+      box-sizing: border-box;
+    }
+    
+    body {
+      background: linear-gradient(135deg, #F3E8FF 0%, #EDE9FE 50%, #DDD6FE 100%);
+      min-height: 100vh;
+      font-family: 'Poppins', 'Open Sans', sans-serif;
+    }
+    
+    .page-wrapper {
+      padding: 2rem 1rem;
+      max-width: 1100px;
       margin: 0 auto;
-    }
-    
-    .tiendas-header {
-      text-align: center;
-      margin-bottom: 2rem;
-    }
-    
-    .tiendas-header h1 {
-      font-size: 2rem;
-      color: var(--primary);
-      margin-bottom: 0.5rem;
-    }
-    
-    .tiendas-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 2rem;
-    }
-    
-    .tienda-card {
-      background: var(--white);
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    }
-    
-    .tienda-map {
-      width: 100%;
-      height: 220px;
-      background: #f0f0f0;
-    }
-    
-    .tienda-map iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
-    }
-    
-    .tienda-info {
-      padding: 1.25rem;
-    }
-    
-    .tienda-nombre {
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: var(--primary);
-      margin-bottom: 1rem;
-    }
-    
-    .tienda-detalle {
-      margin-bottom: 0.5rem;
-      color: #666;
-      font-size: 0.95rem;
-    }
-    
-    .tienda-boton {
-      display: inline-block;
-      margin-top: 1rem;
-      padding: 0.6rem 1.25rem;
-      background: var(--primary);
-      color: white;
-      border-radius: 8px;
-      text-decoration: none;
-      font-weight: 500;
-      transition: all 0.3s;
-      border: none;
-      cursor: pointer;
-    }
-    
-    .tienda-boton:hover {
-      background: #6D28D9;
     }
     
     .back-link {
@@ -93,21 +43,189 @@
       text-decoration: none;
       margin-bottom: 2rem;
       font-weight: 500;
+      transition: all 0.3s;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
     }
     
     .back-link:hover {
-      text-decoration: underline;
+      background: rgba(139, 92, 246, 0.1);
+      transform: translateX(-4px);
+    }
+    
+    .back-link svg {
+      width: 20px;
+      height: 20px;
+    }
+    
+    .tiendas-header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+    
+    .tiendas-header h1 {
+      font-size: 2.5rem;
+      background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.75rem;
+      font-weight: 800;
+    }
+    
+    .tiendas-header p {
+      color: var(--gray);
+      font-size: 1.1rem;
+    }
+    
+    .tiendas-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2rem;
     }
     
     @media (max-width: 768px) {
       .tiendas-grid {
         grid-template-columns: 1fr;
-        gap: 1.5rem;
       }
-      
-      .tienda-map {
-        height: 180px;
-      }
+    }
+    
+    .tienda-card {
+      background: var(--white);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 
+        0 10px 30px rgba(139, 92, 246, 0.15),
+        0 4px 6px rgba(0, 0, 0, 0.05);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .tienda-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 
+        0 20px 40px rgba(139, 92, 246, 0.2),
+        0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    .tienda-card.almacen {
+      grid-column: 1 / -1;
+      max-width: 600px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    
+    .tienda-map {
+      width: 100%;
+      height: 240px;
+      background: linear-gradient(135deg, #F3E8FF 0%, #EDE9FE 100%);
+    }
+    
+    .tienda-map iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    
+    .tienda-info {
+      padding: 1.75rem;
+    }
+    
+    .tienda-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+    
+    .tienda-icon {
+      width: 50px;
+      height: 50px;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.5rem;
+      box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+    }
+    
+    .tienda-nombre {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: #111827;
+    }
+    
+    .tienda-detalle {
+      margin-bottom: 0.75rem;
+      color: #4B5563;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      line-height: 1.5;
+    }
+    
+    .tienda-detalle svg {
+      width: 18px;
+      height: 18px;
+      color: var(--primary);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    
+    .tienda-boton {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 1.25rem;
+      padding: 0.75rem 1.5rem;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+    }
+    
+    .tienda-boton:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+    }
+    
+    .tienda-boton svg {
+      width: 18px;
+      height: 18px;
+    }
+    
+    .whatsapp-float {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: linear-gradient(135deg, #25D366 0%, #1DA851 100%);
+      color: white;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 20px rgba(37, 211, 102, 0.4);
+      z-index: 1000;
+      transition: all 0.3s;
+      text-decoration: none;
+    }
+    
+    .whatsapp-float:hover {
+      transform: scale(1.1);
+    }
+    
+    .whatsapp-float svg {
+      width: 28px;
+      height: 28px;
     }
   </style>
 </head>
@@ -136,33 +254,52 @@
     </aside>
     
     <main class="main-content">
-      <a href="/" class="back-link">← Volver a la tienda</a>
+      <a href="/" class="back-link">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+        Volver a la tienda
+      </a>
       
-      <div class="tiendas-container">
-        <div class="tiendas-header">
-          <h1>Nuestras Tiendas</h1>
-          <p>Visítanos en cualquiera de nuestros locales</p>
-        </div>
-        
-        <div class="tiendas-grid">
-          <!-- Tienda Santa Anita -->
-          <div class="tienda-card">
-            <div class="tienda-map">
-              <iframe 
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3901.966527487954!2d-76.951!3d-12.045!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9105cda4c8f1b3d3%3A0x5a5c5c5c5c5c5c5c!2sSanta+Anita%2C+Lima!5e0!3m2!1ses!2spe!4v1700000000000"
-                allowfullscreen="" 
-                loading="lazy"
-                referrerpolicy="no-referrer-when-downgrade">
-              </iframe>
-            </div>
-            <div class="tienda-info">
-              <div class="tienda-nombre">🏪 Tienda Santa Anita</div>
-              <div class="tienda-detalle">📍 Santa Anita, Lima</div>
-              <div class="tienda-detalle">🕐 Lun-Sáb: 9AM-9PM | Dom: 10AM-6PM</div>
-              <div class="tienda-detalle">📞 +51 970 859 256</div>
-              <a href="https://maps.app.goo.gl/6fvZ3KhFs1y5y4gZ6" target="_blank" class="tienda-boton">Abrir en Google Maps</a>
-            </div>
+      <div class="page-wrapper">
+        <div class="tiendas-container">
+          <div class="tiendas-header">
+            <h1>Nuestras Tiendas</h1>
+            <p>Visítanos en cualquiera de nuestros locales</p>
           </div>
+          
+          <div class="tiendas-grid">
+            <!-- Tienda Santa Anita -->
+            <div class="tienda-card">
+              <div class="tienda-map">
+                <iframe 
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3901.966527487954!2d-76.951!3d-12.045!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9105cda4c8f1b3d3%3A0x5a5c5c5c5c5c5c5c!2sSanta+Anita%2C+Lima!5e0!3m2!1ses!2spe!4v1700000000000"
+                  allowfullscreen="" 
+                  loading="lazy"
+                  referrerpolicy="no-referrer-when-downgrade">
+                </iframe>
+              </div>
+              <div class="tienda-info">
+                <div class="tienda-header">
+                  <div class="tienda-icon">🏪</div>
+                  <div class="tienda-nombre">Tienda Santa Anita</div>
+                </div>
+                <div class="tienda-detalle">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                  Santa Anita, Lima
+                </div>
+                <div class="tienda-detalle">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  Lun-Sáb: 9AM-9PM | Dom: 10AM-6PM
+                </div>
+                <div class="tienda-detalle">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+                  +51 970 859 256
+                </div>
+                <a href="https://maps.app.goo.gl/6fvZ3KhFs1y5y4gZ6" target="_blank" class="tienda-boton">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                  Abrir en Google Maps
+                </a>
+              </div>
+            </div>
         </div>
       </div>
     </main>
