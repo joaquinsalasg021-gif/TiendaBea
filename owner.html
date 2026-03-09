@@ -147,13 +147,6 @@
 
             // Init
             (function init() {
-              const m = document.getElementById('dash-month');
-              const y = document.getElementById('dash-year');
-              const cm = new Date().getMonth() + 1, cy = new Date().getFullYear();
-              for(let i=1;i<=12;i++) m.add(new Option(i,i),i);
-              for(let i=cy;i>=cy-5;i--) y.add(new Option(i,i),i);
-              m.value = cm; y.value = cy;
-              
               loadInv();
               loadTransProducts();
 
