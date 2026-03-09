@@ -977,19 +977,16 @@ app.post('/api/orders', authMiddleware, async (req, res) => {
     const orderId = orderData.id;
     console.log('Order ID:', orderId);
 
-    // Create order items and update stock
+    // Create order items (stock will be deducted when order is processed)
     console.log('Creating order items for cart items:', cartItems); // Debug log
     const insertOrderItem = db().prepare(`
       INSERT INTO order_items (order_id, product_id, quantity, unit_price, subtotal)
       VALUES (?, ?, ?, ?, ?)
     `);
 
-    const updateStock = db().prepare('UPDATE products SET stock_almacen = stock_almacen - ?, stock = stock - ? WHERE id = ?');
-
     for (const item of cartItems) {
       const subtotal = item.price * item.quantity;
       insertOrderItem.run(orderId, item.product_id, item.quantity, item.price, subtotal);
-      updateStock.run(item.quantity, item.quantity, item.product_id);
     }
     
     // Verify order items were saved
@@ -1107,6 +1104,41 @@ app.put('/api/orders/:id/status', authMiddleware, requireRole('admin', 'owner'),
     const order = db().prepare('SELECT * FROM orders WHERE id = ?').get(id);
     if (!order) {
       return res.status(404).json({ error: 'Order not found' });
+    }
+
+    const oldStatus = order.status;
+    
+    // Deduct stock only when changing FROM 'agendado' TO 'en_proceso' or 'enviado'
+    if (oldStatus === 'agendado' && (status === 'en_proceso' || status === 'enviado')) {
+      // Get order items and deduct stock from almacen
+      const orderItems = db().prepare('SELECT * FROM order_items WHERE order_id = ?').all(id);
+      
+      for (const item of orderItems) {
+        db().prepare(`
+          UPDATE products 
+          SET stock_almacen = stock_almacen - ?, 
+              stock = stock - ? 
+          WHERE id = ?
+        `).run(item.quantity, item.quantity, item.product_id);
+      }
+      
+      console.log(`Stock deducted for order ${id} items:`, orderItems.length);
+    }
+    
+    // If changing FROM 'en_proceso' or 'enviado' back to 'agendado', restore stock
+    if ((oldStatus === 'en_proceso' || oldStatus === 'enviado') && status === 'agendado') {
+      const orderItems = db().prepare('SELECT * FROM order_items WHERE order_id = ?').all(id);
+      
+      for (const item of orderItems) {
+        db().prepare(`
+          UPDATE products 
+          SET stock_almacen = stock_almacen + ?, 
+              stock = stock + ? 
+          WHERE id = ?
+        `).run(item.quantity, item.quantity, item.product_id);
+      }
+      
+      console.log(`Stock restored for order ${id}`);
     }
 
     db().prepare('UPDATE orders SET status = ? WHERE id = ?').run(status, id);
