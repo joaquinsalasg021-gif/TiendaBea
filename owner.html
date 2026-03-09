@@ -23,6 +23,7 @@
         <button class="admin-tab" data-tab="settings">Configuración</button>
         <button class="admin-tab" data-tab="products">Productos</button>
         <button class="admin-tab" data-tab="orders">Pedidos</button>
+        <button class="admin-tab" data-tab="banners">Banners</button>
       </div>
 
       <!-- Dashboard Tab -->
@@ -442,6 +443,46 @@
           <div class="loading"><div class="spinner"></div></div>
         </div>
       </div>
+      
+      <!-- Banners Tab -->
+      <div id="banners-tab" class="admin-content d-none">
+        <h2>Gestión de Banners</h2>
+        <p class="mb-3">Sube banners para el carrusel de la tienda. Formatos permitidos: PNG, JPG</p>
+        
+        <!-- Add Banner Form -->
+        <div class="card mb-3">
+          <h3>Agregar Banner</h3>
+          <form id="banner-form" enctype="multipart/form-data">
+            <div class="form-group">
+              <label class="form-label" for="banner_image">Imagen (PNG/JPG) *</label>
+              <input type="file" id="banner_image" class="form-input" accept="image/png,image/jpeg,image/jpg" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="banner_url">URL de destino (opcional)</label>
+              <input type="url" id="banner_url" class="form-input" placeholder="https://ejemplo.com">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="banner_text">Texto (opcional)</label>
+              <input type="text" id="banner_text" class="form-input" placeholder="Texto que aparece sobre el banner">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="banner_order">Orden</label>
+              <input type="number" id="banner_order" class="form-input" value="0" min="0">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="banner_active">
+                <input type="checkbox" id="banner_active" checked> Activo
+              </label>
+            </div>
+            <button type="submit" class="btn btn-primary">Subir Banner</button>
+          </form>
+        </div>
+        
+        <!-- Banners List -->
+        <div id="banners-list">
+          <div class="loading"><div class="spinner"></div></div>
+        </div>
+      </div>
     </div>
   </div>
   
@@ -527,6 +568,8 @@
             AdminPage.loadProducts();
           } else if (tabId === 'orders') {
             AdminPage.loadAllOrders();
+          } else if (tabId === 'banners') {
+            BannerPage.loadBanners();
           }
         });
       });
@@ -687,6 +730,134 @@
         UI.showToast(e.message, 'error');
       }
     };
+    
+    // Banner Management Page
+    const BannerPage = {
+      loadBanners: async () => {
+        try {
+          const token = localStorage.getItem('token');
+          const response = await fetch('/api/dashboard/banners', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          
+          if (!response.ok) throw new Error('Error loading banners');
+          
+          const banners = await response.json();
+          BannerPage.renderBanners(banners);
+        } catch (e) {
+          document.getElementById('banners-list').innerHTML = UI.showError(e.message);
+        }
+      },
+      
+      renderBanners: (banners) => {
+        const container = document.getElementById('banners-list');
+        
+        if (!banners.length) {
+          container.innerHTML = '<p>No hay banners. Sube el primero!</p>';
+          return;
+        }
+        
+        let html = '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">';
+        
+        banners.forEach(banner => {
+          html += `
+            <div class="card" style="position: relative;">
+              <img src="${banner.image_url}" alt="Banner" style="width: 100%; height: 150px; object-fit: cover;">
+              <div style="padding: 10px;">
+                <p><strong>Orden:</strong> ${banner.order_index}</p>
+                <p><strong>URL:</strong> ${banner.url || 'Sin URL'}</p>
+                <p><strong>Texto:</strong> ${banner.text || 'Sin texto'}</p>
+                <p><strong>Estado:</strong> ${banner.is_active ? 'Activo' : 'Inactivo'}</p>
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                  <button class="btn btn-sm btn-primary" onclick="BannerPage.toggleActive(${banner.id}, ${banner.is_active ? 0 : 1})">
+                    ${banner.is_active ? 'Desactivar' : 'Activar'}
+                  </button>
+                  <button class="btn btn-sm btn-danger" onclick="BannerPage.deleteBanner(${banner.id})">Eliminar</button>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+        
+        html += '</div>';
+        container.innerHTML = html;
+      },
+      
+      toggleActive: async (id, isActive) => {
+        try {
+          const token = localStorage.getItem('token');
+          const response = await fetch(`/api/dashboard/banners/${id}`, {
+            method: 'PUT',
+            headers: { 
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ is_active: isActive ? 'true' : 'false' })
+          });
+          
+          if (!response.ok) throw new Error('Error updating banner');
+          
+          UI.showToast(isActive ? 'Banner activado' : 'Banner desactivado');
+          BannerPage.loadBanners();
+        } catch (e) {
+          UI.showToast(e.message, 'error');
+        }
+      },
+      
+      deleteBanner: async (id) => {
+        if (!confirm('¿Estás seguro de eliminar este banner?')) return;
+        
+        try {
+          const token = localStorage.getItem('token');
+          const response = await fetch(`/api/dashboard/banners/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          
+          if (!response.ok) throw new Error('Error deleting banner');
+          
+          UI.showToast('Banner eliminado');
+          BannerPage.loadBanners();
+        } catch (e) {
+          UI.showToast(e.message, 'error');
+        }
+      }
+    };
+    
+    // Handle banner form submit
+    document.getElementById('banner-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const form = e.target;
+      const formData = new FormData();
+      
+      formData.append('image', form.banner_image.files[0]);
+      formData.append('url', form.banner_url.value);
+      formData.append('text', form.banner_text.value);
+      formData.append('order_index', form.banner_order.value);
+      formData.append('is_active', form.banner_active.checked ? 'true' : 'false');
+      
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/dashboard/banners', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` },
+          body: formData
+        });
+        
+        if (!response.ok) {
+          const data = await response.json();
+          throw new Error(data.error);
+        }
+        
+        UI.showToast('Banner subido correctamente!');
+        form.reset();
+        form.banner_active.checked = true;
+        BannerPage.loadBanners();
+      } catch (e) {
+        UI.showToast(e.message, 'error');
+      }
+    });
   </script>
 </body>
 </html>

@@ -376,6 +376,120 @@ app.delete('/api/categories/:id', authMiddleware, requireRole('admin', 'owner'),
   }
 });
 
+// ==================== BANNERS ROUTES ====================
+
+// Get all active banners (public - for store carousel)
+app.get('/api/banners', (req, res) => {
+  try {
+    const banners = db().prepare(`
+      SELECT * FROM banners 
+      WHERE is_active = 1 
+      ORDER BY order_index ASC, created_at DESC
+    `).all();
+    res.json(banners);
+  } catch (error) {
+    console.error('Get banners error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Get all banners for admin/owner (including inactive)
+app.get('/api/dashboard/banners', authMiddleware, requireRole('admin', 'owner'), (req, res) => {
+  try {
+    const banners = db().prepare(`
+      SELECT * FROM banners 
+      ORDER BY order_index ASC, created_at DESC
+    `).all();
+    res.json(banners);
+  } catch (error) {
+    console.error('Get banners error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Create banner
+app.post('/api/dashboard/banners', authMiddleware, requireRole('admin', 'owner'), upload.single('image'), (req, res) => {
+  try {
+    const { url, text, order_index, is_active } = req.body;
+    
+    if (!req.file) {
+      return res.status(400).json({ error: 'La imagen es requerida' });
+    }
+    
+    const imageUrl = `/uploads/${req.file.filename}`;
+    
+    const result = db().prepare(`
+      INSERT INTO banners (image_url, url, text, order_index, is_active)
+      VALUES (?, ?, ?, ?, ?)
+    `).run(
+      imageUrl,
+      url || null,
+      text || null,
+      parseInt(order_index) || 0,
+      is_active === 'false' ? 0 : 1
+    );
+    
+    const banner = db().prepare('SELECT * FROM banners WHERE id = ?').get(result.lastInsertRowid);
+    res.status(201).json(banner);
+  } catch (error) {
+    console.error('Create banner error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Update banner
+app.put('/api/dashboard/banners/:id', authMiddleware, requireRole('admin', 'owner'), upload.single('image'), (req, res) => {
+  try {
+    const { id } = req.params;
+    const { url, text, order_index, is_active } = req.body;
+    
+    const banner = db().prepare('SELECT * FROM banners WHERE id = ?').get(id);
+    if (!banner) {
+      return res.status(404).json({ error: 'Banner no encontrado' });
+    }
+    
+    const imageUrl = req.file ? `/uploads/${req.file.filename}` : banner.image_url;
+    
+    db().prepare(`
+      UPDATE banners 
+      SET image_url = ?, url = ?, text = ?, order_index = ?, is_active = ?
+      WHERE id = ?
+    `).run(
+      imageUrl,
+      url !== undefined ? url : banner.url,
+      text !== undefined ? text : banner.text,
+      order_index !== undefined ? parseInt(order_index) : banner.order_index,
+      is_active !== undefined ? (is_active === 'false' ? 0 : 1) : banner.is_active,
+      id
+    );
+    
+    const updatedBanner = db().prepare('SELECT * FROM banners WHERE id = ?').get(id);
+    res.json(updatedBanner);
+  } catch (error) {
+    console.error('Update banner error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Delete banner
+app.delete('/api/dashboard/banners/:id', authMiddleware, requireRole('admin', 'owner'), (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const banner = db().prepare('SELECT * FROM banners WHERE id = ?').get(id);
+    if (!banner) {
+      return res.status(404).json({ error: 'Banner no encontrado' });
+    }
+    
+    db().prepare('DELETE FROM banners WHERE id = ?').run(id);
+    
+    res.json({ message: 'Banner eliminado' });
+  } catch (error) {
+    console.error('Delete banner error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // ==================== PRODUCTS ROUTES ====================
 
 // Get all products

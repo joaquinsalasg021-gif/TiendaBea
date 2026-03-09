@@ -129,6 +129,18 @@ async function initDatabase() {
       FOREIGN KEY (category_id) REFERENCES categories(id)
     )
   `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS banners (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      image_url TEXT NOT NULL,
+      url TEXT,
+      text TEXT,
+      order_index INTEGER DEFAULT 0,
+      is_active INTEGER DEFAULT 1,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
   
   db.run(`
     CREATE TABLE IF NOT EXISTS cart_items (

@@ -99,27 +99,7 @@
         <!-- Carrusel de Anuncios -->
         <div class="carousel-container">
           <div class="carousel-track" id="carousel-track">
-            <div class="carousel-slide">
-              <img src="/img/banners/banner1.jpg" alt="Banner 1" onerror="this.style.display='none'">
-              <div class="carousel-caption">
-                <h3>¡Nuevos Productos!</h3>
-                <p>Descubre nuestra nueva colección</p>
-              </div>
-            </div>
-            <div class="carousel-slide">
-              <img src="/img/banners/banner2.jpg" alt="Banner 2" onerror="this.style.display='none'">
-              <div class="carousel-caption">
-                <h3>Envíos a Todo el Perú</h3>
-                <p>Recibe tus pedidos en casa</p>
-              </div>
-            </div>
-            <div class="carousel-slide">
-              <img src="/img/banners/banner3.jpg" alt="Banner 3" onerror="this.style.display='none'">
-              <div class="carousel-caption">
-                <h3>Atención al Cliente</h3>
-                <p>Estamos para ayudarte</p>
-              </div>
-            </div>
+            <!-- Banners se cargan dinámicamente -->
           </div>
           <button class="carousel-btn carousel-btn-prev" onclick="moveCarousel(-1)">&#10094;</button>
           <button class="carousel-btn carousel-btn-next" onclick="moveCarousel(1)">&#10095;</button>
@@ -193,7 +173,53 @@
     // Carousel functionality
     let currentSlide = 0;
     let carouselInterval;
-    const totalSlides = 3;
+    let totalSlides = 0;
+    
+    // Load banners from API
+    async function loadBanners() {
+      try {
+        const response = await fetch('/api/banners');
+        if (!response.ok) throw new Error('Error loading banners');
+        const banners = await response.json();
+        
+        const track = document.getElementById('carousel-track');
+        if (!track) return;
+        
+        if (banners.length === 0) {
+          // No banners in DB, hide carousel
+          track.innerHTML = '<div class="carousel-slide"><div class="carousel-caption"><h3>¡Bienvenido a Bea Mayorista!</h3><p>Explora nuestros productos</p></div></div>';
+          totalSlides = 1;
+        } else {
+          // Render banners from API
+          track.innerHTML = banners.map(banner => {
+            const linkStart = banner.url ? `<a href="${banner.url}" target="_blank">` : '';
+            const linkEnd = banner.url ? '</a>' : '';
+            return `
+              <div class="carousel-slide">
+                ${linkStart}<img src="${banner.image_url}" alt="Banner">${linkEnd}
+                ${banner.text ? `<div class="carousel-caption"><h3>${banner.text}</h3></div>` : ''}
+              </div>
+            `;
+          }).join('');
+          totalSlides = banners.length;
+        }
+        
+        createDots();
+        showSlide(0);
+        startAutoPlay();
+      } catch (e) {
+        console.error('Error loading banners:', e);
+        // Fallback
+        const track = document.getElementById('carousel-track');
+        if (track) {
+          track.innerHTML = '<div class="carousel-slide"><div class="carousel-caption"><h3>¡Bienvenido a Bea Mayorista!</h3><p>Explora nuestros productos</p></div></div>';
+          totalSlides = 1;
+          createDots();
+          showSlide(0);
+          startAutoPlay();
+        }
+      }
+    }
 
     function initCarousel() {
       createDots();
@@ -264,7 +290,7 @@
     // Update sidebar user menu on load
     document.addEventListener('DOMContentLoaded', () => {
       updateSidebarUserMenu();
-      initCarousel();
+      loadBanners();
     });
     
     function updateSidebarUserMenu() {
