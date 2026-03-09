@@ -1451,12 +1451,15 @@ app.get('/api/dashboard/products', authMiddleware, requireRole('admin', 'owner')
   try {
     const products = db().prepare(`
       SELECT p.id, p.name, p.price,
-        p.stock_manchay, p.stock_santa_anita, p.stock_almacen, COALESCE(p.stock_tienda, 0) as stock_tienda,
-        (p.stock_manchay + p.stock_santa_anita + p.stock_almacen + COALESCE(p.stock_tienda, 0)) as stock_total,
+        COALESCE(p.stock_manchay, 0) as stock_manchay, 
+        COALESCE(p.stock_santa_anita, 0) as stock_santa_anita, 
+        COALESCE(p.stock_almacen, 0) as stock_almacen, 
+        COALESCE(p.stock_tienda, 0) as stock_tienda,
+        (COALESCE(p.stock_manchay, 0) + COALESCE(p.stock_santa_anita, 0) + COALESCE(p.stock_almacen, 0) + COALESCE(p.stock_tienda, 0)) as stock,
         c.name as category_name
       FROM products p
       LEFT JOIN categories c ON p.category_id = c.id
-      WHERE p.is_active = 1
+      WHERE p.is_active = 1 OR p.is_active IS NULL
       ORDER BY p.name ASC
     `).all();
 
