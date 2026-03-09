@@ -452,12 +452,12 @@ app.post('/api/products', authMiddleware, requireRole('admin', 'owner'), upload.
 
     const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
 
-    // Calculate stock distribution across locations (4 locations now)
-    const totalStock = parseInt(stock) || 0;
-    const stockManchay = Math.floor(totalStock / 4);
-    const stockSantaAnita = Math.floor(totalStock / 4);
-    const stockAlmacen = Math.floor(totalStock / 4);
-    const stockTienda = totalStock - stockManchay - stockSantaAnita - stockAlmacen;
+    // Get stock distribution from form (stock should go to almacen by default)
+    const stockManchay = parseInt(req.body.stock_manchay) || 0;
+    const stockSantaAnita = parseInt(req.body.stock_santa_anita) || 0;
+    const stockAlmacen = parseInt(req.body.stock_almacen) || parseInt(req.body.stock) || 0;
+    const stockTienda = parseInt(req.body.stock_tienda) || 0;
+    const totalStock = stockManchay + stockSantaAnita + stockAlmacen + stockTienda;
 
     // If custom ID is provided
     if (id && id.trim()) {
@@ -537,11 +537,12 @@ app.put('/api/products/:id', authMiddleware, requireRole('admin', 'owner'), uplo
       const imageUrl = req.file ? `/uploads/${req.file.filename}` : product.image_url;
       const newTotalStock = stock !== undefined ? parseInt(stock) : product.stock;
       
-      // Calculate stock distribution (4 locations)
-      const stockManchay = Math.floor(newTotalStock / 4);
-      const stockSantaAnita = Math.floor(newTotalStock / 4);
-      const stockAlmacen = Math.floor(newTotalStock / 4);
-      const stockTienda = newTotalStock - stockManchay - stockSantaAnita - stockAlmacen;
+      // Get stock distribution from form or keep existing values
+      const stockManchay = req.body.stock_manchay !== undefined ? parseInt(req.body.stock_manchay) : product.stock_manchay;
+      const stockSantaAnita = req.body.stock_santa_anita !== undefined ? parseInt(req.body.stock_santa_anita) : product.stock_santa_anita;
+      const stockAlmacen = req.body.stock_almacen !== undefined ? parseInt(req.body.stock_almacen) : product.stock_almacen;
+      const stockTienda = req.body.stock_tienda !== undefined ? parseInt(req.body.stock_tienda) : product.stock_tienda;
+      const calculatedTotalStock = stockManchay + stockSantaAnita + stockAlmacen + stockTienda;
       
       db().prepare(`
         INSERT INTO products (id, name, description, price, stock, stock_manchay, stock_santa_anita, stock_almacen, stock_tienda, category_id, image_url, is_active)
@@ -551,7 +552,7 @@ app.put('/api/products/:id', authMiddleware, requireRole('admin', 'owner'), uplo
         name || product.name,
         description !== undefined ? description : product.description,
         price ? parseFloat(price) : product.price,
-        newTotalStock,
+        calculatedTotalStock,
         stockManchay,
         stockSantaAnita,
         stockAlmacen,
@@ -573,18 +574,24 @@ app.put('/api/products/:id', authMiddleware, requireRole('admin', 'owner'), uplo
 
     const imageUrl = req.file ? `/uploads/${req.file.filename}` : product.image_url;
 
-    // Calculate stock distribution if total stock is being updated (4 locations)
-    let newStockManchay = product.stock_manchay;
-    let newStockSantaAnita = product.stock_santa_anita;
-    let newStockAlmacen = product.stock_almacen;
-    let newStockTienda = product.stock_tienda;
+    // Use stock values from form if provided, otherwise keep existing
+    let newStockManchay = req.body.stock_manchay !== undefined ? parseInt(req.body.stock_manchay) : product.stock_manchay;
+    let newStockSantaAnita = req.body.stock_santa_anita !== undefined ? parseInt(req.body.stock_santa_anita) : product.stock_santa_anita;
+    let newStockAlmacen = req.body.stock_almacen !== undefined ? parseInt(req.body.stock_almacen) : product.stock_almacen;
+    let newStockTienda = req.body.stock_tienda !== undefined ? parseInt(req.body.stock_tienda) : product.stock_tienda;
     
-    if (stock !== undefined) {
-      const newTotalStock = parseInt(stock);
-      newStockManchay = Math.floor(newTotalStock / 4);
-      newStockSantaAnita = Math.floor(newTotalStock / 4);
-      newStockAlmacen = Math.floor(newTotalStock / 4);
-      newStockTienda = newTotalStock - newStockManchay - newStockSantaAnita - newStockAlmacen;
+    // Calculate new total from individual stock values
+    const calculatedTotal = newStockManchay + newStockSantaAnita + newStockAlmacen + newStockTienda;
+    
+    // Only update individual stocks if explicitly provided in request
+    const updateIndividualStocks = req.body.stock_manchay !== undefined || req.body.stock_santa_anita !== undefined || req.body.stock_almacen !== undefined;
+    
+    if (!updateIndividualStocks && stock !== undefined) {
+      // Fallback: if only total stock provided, keep existing distribution
+      newStockManchay = product.stock_manchay;
+      newStockSantaAnita = product.stock_santa_anita;
+      newStockAlmacen = product.stock_almacen;
+      newStockTienda = product.stock_tienda;
     }
 
     db().prepare(`
@@ -595,7 +602,7 @@ app.put('/api/products/:id', authMiddleware, requireRole('admin', 'owner'), uplo
       name || product.name,
       description !== undefined ? description : product.description,
       price ? parseFloat(price) : product.price,
-      stock !== undefined ? parseInt(stock) : product.stock,
+      req.body.stock_manchay !== undefined || req.body.stock_santa_anita !== undefined || req.body.stock_almacen !== undefined || req.body.stock_tienda !== undefined ? calculatedTotal : (stock !== undefined ? parseInt(stock) : product.stock),
       newStockManchay,
       newStockSantaAnita,
       newStockAlmacen,

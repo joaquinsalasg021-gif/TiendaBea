@@ -41,6 +41,28 @@ async function initDatabase() {
     console.log('Users table migration check:', e.message);
   }
 
+  // Check and migrate products table for location stock fields
+  try {
+    const result = db.exec("SELECT name FROM sqlite_master WHERE type='table' AND name='products'");
+    if (result.length > 0 && result[0].values.length > 0) {
+      const productColumns = db.exec("PRAGMA table_info(products)");
+      if (productColumns.length > 0) {
+        const columnNames = productColumns[0].values.map(col => col[1]);
+        if (!columnNames.includes('stock_manchay')) {
+          console.log('Migrating products table: adding location stock fields...');
+          db.run("ALTER TABLE products ADD COLUMN stock_manchay INTEGER DEFAULT 0");
+          db.run("ALTER TABLE products ADD COLUMN stock_santa_anita INTEGER DEFAULT 0");
+          db.run("ALTER TABLE products ADD COLUMN stock_almacen INTEGER DEFAULT 0");
+          db.run("ALTER TABLE products ADD COLUMN stock_tienda INTEGER DEFAULT 0");
+          saveDatabase();
+          console.log('Products table migration completed.');
+        }
+      }
+    }
+  } catch (e) {
+    console.log('Products table migration check:', e.message);
+  }
+
   // Check and migrate orders table if needed
   try {
     const result = db.exec("SELECT name FROM sqlite_master WHERE type='table' AND name='orders'");
