@@ -28,8 +28,10 @@
         
         <form id="checkout-form">
           <div class="form-group">
-            <label class="form-label" for="scheduled_date">Fecha Programada</label>
-            <input type="date" id="scheduled_date" class="form-input" required>
+            <div class="info-message">
+              <span class="info-icon">ℹ️</span>
+              <span>El pedido sale en 1 a 3 días hábiles después del pago</span>
+            </div>
           </div>
           
           <div class="form-group">
@@ -135,8 +137,7 @@
 
 <script src="/js/app.js"></script>
 <script>
-  // Set minimum date to today
-  document.getElementById('scheduled_date').min = new Date().toISOString().split('T')[0];
+  // Hide scheduled date info (no longer needed)
 
   // Toggle shipping agency inputs
   function toggleShippingAgency() {
