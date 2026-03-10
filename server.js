@@ -1821,64 +1821,68 @@ async function generateOrderPDF(orderId) {
       doc.pipe(stream);
 
       // Header
-      doc.fontSize(24).text(settingsObj.store_name || 'TiendaBea', { align: 'center' });
-      doc.moveDown();
-      doc.fontSize(14).text('Order Confirmation', { align: 'center' });
+      doc.fontSize(20).text('BEA MAYORISTA - B & K IMPORT', { align: 'center' });
+      doc.moveDown(0.5);
+      doc.fontSize(14).text('Comprobante de Pedido', { align: 'center' });
       doc.moveDown(2);
 
       // Order info
-      doc.fontSize(12);
-      doc.text(`Order Code: ${orderCode}`);
-      doc.text(`User Code: ${order.user_code}`);
-      doc.text(`Customer: ${order.name} ${order.lastname}`);
-      if (order.phone) doc.text(`Phone: ${order.phone}`);
-      if (order.dni) doc.text(`DNI: ${order.dni}`);
-      if (order.shipping_agency) doc.text(`Shipping Agency: ${order.shipping_agency}`);
-      if (order.province) doc.text(`Province: ${order.province}`);
+      doc.fontSize(11);
+      doc.text(`Código de Pedido: ${orderCode}`);
+      doc.text(`Código de Usuario: ${order.user_code}`);
+      doc.text(`Cliente: ${order.name} ${order.lastname}`);
+      doc.text(`Teléfono: ${order.phone || 'No especificado'}`);
+      doc.text(`DNI: ${order.dni || 'No especificado'}`);
+      doc.text(`Agencia de Envío: ${order.shipping_agency || 'No especificada'}`);
+      doc.text(`Provincia: ${order.province || 'No especificada'}`);
+      
+      // Format the date
+      const createdDate = order.created_at ? new Date(order.created_at).toLocaleDateString('es-PE', { year: 'numeric', month: '2-digit', day: '2-digit' }) : new Date().toLocaleDateString('es-PE');
+      doc.text(`Fecha Generación: ${createdDate}`);
+      doc.text(`Estado: ${order.status ? order.status.toUpperCase() : 'EN PROCESO'}`);
+      
       if (order.packaging) {
         const packagingLabel = order.packaging === 'estandar' ? 'Estándar (S/10)' : order.packaging === 'grande' ? 'Grande (S/15)' : order.packaging;
         doc.text(`Embalaje: ${packagingLabel}`);
       }
-      doc.moveDown();
-      doc.text(`Scheduled Date: ${order.scheduled_date}`);
-      doc.text(`Scheduled Time: ${order.scheduled_time}`);
-      doc.text(`Status: ${order.status.toUpperCase()}`);
       doc.moveDown(2);
 
       // Items table header
-      doc.fontSize(12).text('Order Items:', { underline: true });
-      doc.moveDown();
+      doc.fontSize(12).text('Productos:', { underline: true });
+      doc.moveDown(0.5);
 
       let y = doc.y;
+      doc.fontSize(10);
       doc.text('ID', 50, y);
-      doc.text('Product', 80, y);
-      doc.text('Qty', 280, y);
-      doc.text('Price', 330, y);
+      doc.text('Producto', 100, y);
+      doc.text('Cant', 280, y);
+      doc.text('Precio', 340, y);
       doc.text('Subtotal', 430, y);
-      doc.moveDown();
+      doc.moveDown(0.5);
       
       // Items
       console.log('Generating PDF - Order items:', items); // Debug log
+      doc.fontSize(9);
       items.forEach(item => {
         y = doc.y;
         doc.text(item.product_id.toString(), 50, y);
-        doc.text(item.name.substring(0, 30), 80, y);
+        doc.text(item.name.substring(0, 25), 100, y);
         doc.text(item.quantity.toString(), 280, y);
-        doc.text(`S/${item.unit_price.toFixed(2)}`, 330, y);
+        doc.text(`S/${item.unit_price.toFixed(2)}`, 340, y);
         doc.text(`S/${item.subtotal.toFixed(2)}`, 430, y);
-        doc.moveDown();
+        doc.moveDown(0.5);
       });
 
       doc.moveDown();
-      doc.fontSize(14).text(`Total: S/${order.total_amount.toFixed(2)}`, { align: 'right' });
+      doc.fontSize(14).text(`Total del Pedido: S/${order.total_amount.toFixed(2)}`, { align: 'right' });
 
       if (order.notes) {
         doc.moveDown(2);
-        doc.fontSize(10).text(`Notes: ${order.notes}`);
+        doc.fontSize(10).text(`Observaciones: ${order.notes}`);
       }
 
       doc.moveDown(2);
-      doc.fontSize(10).text(`Generated: ${new Date().toLocaleString()}`, { align: 'center' });
+      doc.fontSize(10).text('Gracias por su compra.', { align: 'center' });
 
       doc.end();
 
