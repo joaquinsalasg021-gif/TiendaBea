@@ -698,7 +698,8 @@ const CartPage = {
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       
-      const scheduledDate = document.getElementById('scheduled_date').value;
+      const scheduledDateEl = document.getElementById('scheduled_date');
+      const scheduledDate = scheduledDateEl ? scheduledDateEl.value : null;
       const dni = document.getElementById('dni').value;
       let shippingAgency = document.getElementById('shipping_agency').value;
       const province = document.getElementById('province').value;
@@ -752,7 +753,7 @@ const CartPage = {
         const packagingText = order.packaging ? (order.packaging === 'estandar' ? 'Estándar (S/10)' : order.packaging === 'grande' ? 'Grande (S/15)' : 'No seleccionado') : 'No seleccionado';
         const message = `🛒 Pedido Agendado - Bea Mayorista\n` +
           `Código de Pedido: ${order.order_code}\n` +
-          `Fecha de Entrega: ${order.scheduled_date} a las ${scheduledTime}\n\n` +
+          `El pedido sale en 1 a 3 días hábiles después del pago\n\n` +
           `📱 Mi Número de Contacto: ${userPhone}\n` +
           `🆔 Mi DNI: ${order.dni}\n\n` +
           `🚚 Agencia de Envío: ${order.shipping_agency}\n` +
