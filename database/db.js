@@ -160,7 +160,7 @@ async function initDatabase() {
       user_id INTEGER NOT NULL,
       order_code TEXT UNIQUE NOT NULL,
       status TEXT DEFAULT 'agendado',
-      scheduled_date DATE NOT NULL,
+      scheduled_date DATE,
       scheduled_time TIME,
       total_amount REAL NOT NULL,
       notes TEXT,
