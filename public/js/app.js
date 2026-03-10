@@ -502,7 +502,7 @@ const CartPage = {
       html += `
         <tr>
           <td>${order.order_code}</td>
-          <td>${UI.formatDateTime(order.scheduled_date, order.scheduled_time)}</td>
+          <td>${UI.formatDateTime(order.created_at, null)}</td>
           <td>${UI.formatPrice(order.total_amount)}</td>
           <td>${countdownHtml}</td>
           <td><span class="order-status ${statusClass}">${statusLabel}</span></td>
@@ -851,7 +851,7 @@ const OrdersPage = {
       html += `
         <tr>
           <td>${order.order_code}</td>
-          <td>${UI.formatDateTime(order.scheduled_date, order.scheduled_time)}</td>
+          <td>${UI.formatDateTime(order.created_at, null)}</td>
           <td>${UI.formatPrice(order.total_amount)}</td>
           <td>${countdownHtml}</td>
           <td><span class="order-status ${statusClass}">${statusLabel}</span></td>
@@ -1093,7 +1093,7 @@ const AdminPage = {
           <td>${order.order_code}</td>
           <td>${order.name} ${order.lastname}</td>
           <td>${UI.formatPrice(order.total_amount)}</td>
-          <td>${UI.formatDateTime(order.scheduled_date, order.scheduled_time)}</td>
+          <td>${UI.formatDateTime(order.created_at, null)}</td>
           <td>${countdownHtml}</td>
           <td>
             <select onchange="AdminPage.updateOrderStatus(${order.id}, this.value)" class="form-select" style="width: auto;">
@@ -1651,8 +1651,8 @@ const OrderDetailPage = {
               <div>${order.phone || 'N/A'}</div>
             </div>
             <div class="order-detail-item">
-              <div class="order-detail-label">Fecha Programada</div>
-              <div>${UI.formatDateTime(order.scheduled_date, order.scheduled_time)}</div>
+              <div class="order-detail-label">Fecha de Pedido</div>
+              <div>${UI.formatDateTime(order.created_at, null)}</div>
             </div>
             ${order.notes ? `<div class="order-detail-item"><div class="order-detail-label">Notas</div><div>${order.notes}</div></div>` : ''}
           </div>
