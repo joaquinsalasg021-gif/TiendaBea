@@ -1820,7 +1820,13 @@ async function generateOrderPDF(orderId) {
 
       doc.pipe(stream);
 
-      // Header
+      // Add logo image if exists
+      const logoPath = path.join(__dirname, 'public', 'pestaña', 'IconoPestaña.jpg');
+      if (fs.existsSync(logoPath)) {
+        doc.image(logoPath, 50, 20, { width: 50 });
+      }
+
+      // Header text
       doc.fontSize(20).text('BEA MAYORISTA - B & K IMPORT', { align: 'center' });
       doc.moveDown(0.5);
       doc.fontSize(14).text('Comprobante de Pedido', { align: 'center' });
