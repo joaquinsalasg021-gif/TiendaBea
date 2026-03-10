@@ -50,10 +50,10 @@ async function initDatabase() {
         const columnNames = productColumns[0].values.map(col => col[1]);
         if (!columnNames.includes('stock_manchay')) {
           console.log('Migrating products table: adding location stock fields...');
-          db.run("ALTER TABLE products ADD COLUMN stock_manchay INTEGER DEFAULT 0");
-          db.run("ALTER TABLE products ADD COLUMN stock_santa_anita INTEGER DEFAULT 0");
-          db.run("ALTER TABLE products ADD COLUMN stock_almacen INTEGER DEFAULT 0");
-          db.run("ALTER TABLE products ADD COLUMN stock_tienda INTEGER DEFAULT 0");
+          try { db.run("ALTER TABLE products ADD COLUMN stock_manchay INTEGER DEFAULT 0"); } catch(e) {}
+          try { db.run("ALTER TABLE products ADD COLUMN stock_santa_anita INTEGER DEFAULT 0"); } catch(e) {}
+          try { db.run("ALTER TABLE products ADD COLUMN stock_almacen INTEGER DEFAULT 0"); } catch(e) {}
+          try { db.run("ALTER TABLE products ADD COLUMN stock_tienda INTEGER DEFAULT 0"); } catch(e) {}
           saveDatabase();
           console.log('Products table migration completed.');
         }
