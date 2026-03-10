@@ -1910,20 +1910,8 @@ app.get('/api/orders/:id/pdf', authMiddleware, async (req, res) => {
       return res.status(403).json({ error: 'Access denied' });
     }
 
-    let pdfPath = order.pdf_path;
-    
-    if (!pdfPath) {
-      // Generate PDF if not exists
-      pdfPath = await generateOrderPDF(order.id);
-      db().prepare('UPDATE orders SET pdf_path = ? WHERE id = ?').run(pdfPath, order.id);
-    } else {
-      const fullPath = path.join(__dirname, 'public', pdfPath);
-      if (!fs.existsSync(fullPath)) {
-        // Regenerate if file doesn't exist
-        pdfPath = await generateOrderPDF(order.id);
-        db().prepare('UPDATE orders SET pdf_path = ? WHERE id = ?').run(pdfPath, order.id);
-      }
-    }
+    // Always regenerate PDF to get latest format
+    pdfPath = await generateOrderPDF(order.id);
 
     res.json({ pdf_path: pdfPath });
   } catch (error) {
