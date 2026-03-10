@@ -591,6 +591,23 @@ app.get('/api/products/:id', (req, res) => {
 // Create product (admin/owner)
 app.post('/api/products', authMiddleware, requireRole('admin', 'owner'), uploadImages.array('images', 10), (req, res) => {
   try {
+    // Ensure product_images table exists (migration fallback)
+    try {
+      db().run(`
+        CREATE TABLE IF NOT EXISTS product_images (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          product_id TEXT NOT NULL,
+          image_url TEXT NOT NULL,
+          is_primary INTEGER DEFAULT 0,
+          order_index INTEGER DEFAULT 0,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+        )
+      `);
+    } catch (e) {
+      // Table might already exist, ignore error
+    }
+    
     const { name, description, price, stock, category_id, id } = req.body;
 
     if (!name || !price) {
