@@ -373,8 +373,14 @@ const HomePage = {
     
     let html = '';
     products.forEach(product => {
-      const imageHtml = product.image_url 
-        ? `<img src="${product.image_url}" alt="${product.name}" class="product-image">`
+      // Get first image from images array or fallback to image_url
+      const images = product.images && product.images.length > 0 
+        ? product.images 
+        : (product.image_url ? [{ image_url: product.image_url }] : []);
+      const displayImage = images.length > 0 ? images[0].image_url : null;
+      
+      const imageHtml = displayImage 
+        ? `<img src="${displayImage}" alt="${product.name}" class="product-image">`
         : `<div class="product-image-placeholder">📦</div>`;
       
       const stockClass = product.stock < 5 ? 'low' : '';

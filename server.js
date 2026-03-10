@@ -77,6 +77,21 @@ const upload = multer({
   }
 });
 
+// Upload middleware for multiple images (up to 10)
+const uploadImages = multer({ 
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024, files: 10 },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = /jpeg|jpg|png|gif|webp/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype);
+    if (extname && mimetype) {
+      return cb(null, true);
+    }
+    cb(new Error('Only image files are allowed'));
+  }
+});
+
 // Database helper
 const db = () => getDb();
 
@@ -528,7 +543,17 @@ app.get('/api/products', (req, res) => {
     query += ' ORDER BY p.created_at DESC';
 
     const products = db().prepare(query).all(...params);
-    res.json(products);
+    
+    // Get images for each product
+    const productsWithImages = products.map(product => {
+      const images = db().prepare(`
+        SELECT * FROM product_images WHERE product_id = ? ORDER BY order_index
+      `).all(product.id);
+      product.images = images;
+      return product;
+    });
+    
+    res.json(productsWithImages);
   } catch (error) {
     console.error('Get products error:', error);
     res.status(500).json({ error: 'Server error' });
@@ -549,6 +574,13 @@ app.get('/api/products/:id', (req, res) => {
     if (!product) {
       return res.status(404).json({ error: 'Product not found' });
     }
+    
+    // Get product images
+    const images = db().prepare(`
+      SELECT * FROM product_images WHERE product_id = ? ORDER BY order_index
+    `).all(product.id);
+    product.images = images;
+    
     res.json(product);
   } catch (error) {
     console.error('Get product error:', error);
@@ -557,7 +589,7 @@ app.get('/api/products/:id', (req, res) => {
 });
 
 // Create product (admin/owner)
-app.post('/api/products', authMiddleware, requireRole('admin', 'owner'), upload.single('image'), (req, res) => {
+app.post('/api/products', authMiddleware, requireRole('admin', 'owner'), uploadImages.array('images', 10), (req, res) => {
   try {
     const { name, description, price, stock, category_id, id } = req.body;
 
@@ -565,7 +597,10 @@ app.post('/api/products', authMiddleware, requireRole('admin', 'owner'), upload.
       return res.status(400).json({ error: 'Name and price are required' });
     }
 
-    const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
+    // Get uploaded images (multiple) or fallback to single image for backward compatibility
+    const files = req.files && req.files.length > 0 ? req.files : (req.file ? [req.file] : []);
+    const imageUrls = files.map(file => `/uploads/${file.filename}`);
+    const primaryImageUrl = imageUrls.length > 0 ? imageUrls[0] : null;
 
     // Get stock distribution from form (stock should go to almacen by default)
     const stockManchay = parseInt(req.body.stock_manchay) || 0;
@@ -573,6 +608,8 @@ app.post('/api/products', authMiddleware, requireRole('admin', 'owner'), upload.
     const stockAlmacen = parseInt(req.body.stock_almacen) || parseInt(req.body.stock) || 0;
     const stockTienda = parseInt(req.body.stock_tienda) || 0;
     const totalStock = stockManchay + stockSantaAnita + stockAlmacen + stockTienda;
+
+    let productId;
 
     // If custom ID is provided
     if (id && id.trim()) {
@@ -585,40 +622,52 @@ app.post('/api/products', authMiddleware, requireRole('admin', 'owner'), upload.
       db().prepare(`
         INSERT INTO products (id, name, description, price, stock, stock_manchay, stock_santa_anita, stock_almacen, stock_tienda, category_id, image_url)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `).run(id, name, description || null, parseFloat(price), totalStock, stockManchay, stockSantaAnita, stockAlmacen, stockTienda, category_id || null, imageUrl);
+      `).run(id, name, description || null, parseFloat(price), totalStock, stockManchay, stockSantaAnita, stockAlmacen, stockTienda, category_id || null, primaryImageUrl);
 
-      const product = db().prepare(`
-        SELECT p.*, c.name as category_name 
-        FROM products p 
-        LEFT JOIN categories c ON p.category_id = c.id 
-        WHERE p.id = ?
-      `).get(id);
+      productId = id;
+    } else {
+      const result = db().prepare(`
+        INSERT INTO products (name, description, price, stock, stock_manchay, stock_santa_anita, stock_almacen, stock_tienda, category_id, image_url)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(
+        name, 
+        description || null, 
+        parseFloat(price), 
+        totalStock, 
+        stockManchay, 
+        stockSantaAnita, 
+        stockAlmacen,
+        stockTienda,
+        category_id || null, 
+        primaryImageUrl
+      );
 
-      return res.status(201).json(product);
+      productId = result.lastInsertRowid;
     }
 
-    const result = db().prepare(`
-      INSERT INTO products (name, description, price, stock, stock_manchay, stock_santa_anita, stock_almacen, stock_tienda, category_id, image_url)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
-      name, 
-      description || null, 
-      parseFloat(price), 
-      totalStock, 
-      stockManchay, 
-      stockSantaAnita, 
-      stockAlmacen,
-      stockTienda,
-      category_id || null, 
-      imageUrl
-    );
+    // Save multiple images to product_images table
+    if (imageUrls.length > 0) {
+      imageUrls.forEach((url, index) => {
+        db().prepare(`
+          INSERT INTO product_images (product_id, image_url, is_primary, order_index)
+          VALUES (?, ?, ?, ?)
+        `).run(productId, url, index === 0 ? 1 : 0, index);
+      });
+    }
 
     const product = db().prepare(`
       SELECT p.*, c.name as category_name 
       FROM products p 
       LEFT JOIN categories c ON p.category_id = c.id 
       WHERE p.id = ?
-    `).get(result.lastInsertRowid);
+    `).get(productId);
+
+    // Get product images
+    const images = db().prepare(`
+      SELECT * FROM product_images WHERE product_id = ? ORDER BY order_index
+    `).all(productId);
+
+    product.images = images;
 
     res.status(201).json(product);
   } catch (error) {
@@ -764,6 +813,128 @@ app.delete('/api/products/:id', authMiddleware, requireRole('admin', 'owner'), (
     res.json({ message: 'Product deleted' });
   } catch (error) {
     console.error('Delete product error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Add images to product (admin/owner)
+app.post('/api/products/:id/images', authMiddleware, requireRole('admin', 'owner'), uploadImages.array('images', 10), (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const product = db().prepare('SELECT * FROM products WHERE id = ?').get(id);
+    if (!product) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+    
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ error: 'No images provided' });
+    }
+    
+    // Get current max order_index
+    const maxOrder = db().prepare('SELECT MAX(order_index) as maxOrder FROM product_images WHERE product_id = ?').get(id);
+    let orderIndex = (maxOrder && maxOrder.maxOrder !== null) ? maxOrder.maxOrder + 1 : 0;
+    
+    const newImages = [];
+    req.files.forEach(file => {
+      const imageUrl = `/uploads/${file.filename}`;
+      db().prepare(`
+        INSERT INTO product_images (product_id, image_url, is_primary, order_index)
+        VALUES (?, ?, ?, ?)
+      `).run(id, imageUrl, 0, orderIndex);
+      newImages.push({ image_url: imageUrl, order_index: orderIndex });
+      orderIndex++;
+    });
+    
+    // Update primary image if product doesn't have one
+    const primaryImage = db().prepare('SELECT * FROM product_images WHERE product_id = ? AND is_primary = 1').get(id);
+    if (!primaryImage && newImages.length > 0) {
+      db().prepare('UPDATE product_images SET is_primary = 1 WHERE product_id = ? AND image_url = ?').run(id, newImages[0].image_url);
+      // Also update the main image_url in products table
+      db().prepare('UPDATE products SET image_url = ? WHERE id = ?').run(newImages[0].image_url, id);
+    }
+    
+    // Get all product images
+    const images = db().prepare('SELECT * FROM product_images WHERE product_id = ? ORDER BY order_index').all(id);
+    
+    res.json({ message: 'Images added successfully', images });
+  } catch (error) {
+    console.error('Add product images error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Delete product image (admin/owner)
+app.delete('/api/products/:id/images/:imageId', authMiddleware, requireRole('admin', 'owner'), (req, res) => {
+  try {
+    const { id, imageId } = req.params;
+    
+    const image = db().prepare('SELECT * FROM product_images WHERE id = ? AND product_id = ?').get(imageId, id);
+    if (!image) {
+      return res.status(404).json({ error: 'Image not found' });
+    }
+    
+    // Remove image file
+    const imagePath = path.join(__dirname, 'public', image.image_url);
+    if (fs.existsSync(imagePath)) {
+      fs.unlinkSync(imagePath);
+    }
+    
+    // Delete from database
+    db().prepare('DELETE FROM product_images WHERE id = ?').run(imageId);
+    
+    // If deleted image was primary, set another image as primary
+    if (image.is_primary === 1) {
+      const nextImage = db().prepare('SELECT * FROM product_images WHERE product_id = ? ORDER BY order_index LIMIT 1').get(id);
+      if (nextImage) {
+        db().prepare('UPDATE product_images SET is_primary = 1 WHERE id = ?').run(nextImage.id);
+        db().prepare('UPDATE products SET image_url = ? WHERE id = ?').run(nextImage.image_url, id);
+      } else {
+        db().prepare('UPDATE products SET image_url = NULL WHERE id = ?').run(id);
+      }
+    }
+    
+    // Reorder remaining images
+    const remainingImages = db().prepare('SELECT id FROM product_images WHERE product_id = ? ORDER BY order_index').all(id);
+    remainingImages.forEach((img, index) => {
+      db().prepare('UPDATE product_images SET order_index = ? WHERE id = ?').run(index, img.id);
+    });
+    
+    // Get all product images
+    const images = db().prepare('SELECT * FROM product_images WHERE product_id = ? ORDER BY order_index').all(id);
+    
+    res.json({ message: 'Image deleted successfully', images });
+  } catch (error) {
+    console.error('Delete product image error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Set primary image (admin/owner)
+app.put('/api/products/:id/images/:imageId/primary', authMiddleware, requireRole('admin', 'owner'), (req, res) => {
+  try {
+    const { id, imageId } = req.params;
+    
+    const image = db().prepare('SELECT * FROM product_images WHERE id = ? AND product_id = ?').get(imageId, id);
+    if (!image) {
+      return res.status(404).json({ error: 'Image not found' });
+    }
+    
+    // Remove primary from all other images
+    db().prepare('UPDATE product_images SET is_primary = 0 WHERE product_id = ?').run(id);
+    
+    // Set this image as primary
+    db().prepare('UPDATE product_images SET is_primary = 1 WHERE id = ?').run(imageId);
+    
+    // Update main image_url in products table
+    db().prepare('UPDATE products SET image_url = ? WHERE id = ?').run(image.image_url, id);
+    
+    // Get all product images
+    const images = db().prepare('SELECT * FROM product_images WHERE product_id = ? ORDER BY order_index').all(id);
+    
+    res.json({ message: 'Primary image updated', images });
+  } catch (error) {
+    console.error('Set primary image error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });

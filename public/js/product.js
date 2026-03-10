@@ -40,10 +40,29 @@
     const imageUrl = product.image_url || '/uploads/default-product.png';
     const stockAvailable = product.stock > 0;
     
+    // Get all images - from images array or fallback to single image_url
+    const images = product.images && product.images.length > 0 
+      ? product.images 
+      : (product.image_url ? [{ image_url: product.image_url, is_primary: 1 }] : []);
+    
+    // Build thumbnail gallery HTML
+    const thumbnailsHtml = images.length > 1 
+      ? `<div class="product-thumbnails">
+          ${images.map((img, idx) => `
+            <div class="product-thumbnail ${idx === 0 ? 'active' : ''}" onclick="ProductPage.showImage('${img.image_url}', this)">
+              <img src="${img.image_url}" alt="${product.name}" loading="lazy" onerror="this.src='/uploads/default-product.png'">
+            </div>
+          `).join('')}
+        </div>`
+      : '';
+    
+    const mainImage = images.length > 0 ? images[0].image_url : '/uploads/default-product.png';
+    
     productDetailEl.innerHTML = `
       <div class="product-detail-grid">
         <div class="product-detail-image">
-          <img src="${imageUrl}" alt="${product.name}" loading="lazy" decoding="async" onerror="this.src='/uploads/default-product.png'">
+          <img id="main-product-image" src="${mainImage}" alt="${product.name}" loading="lazy" decoding="async" onerror="this.src='/uploads/default-product.png'">
+          ${thumbnailsHtml}
         </div>
         <div class="product-detail-info">
           <span class="product-category">${product.category_name || 'Sin categoría'}</span>
@@ -206,3 +225,19 @@
   });
   
 })();
+
+// Global function to switch product image (called from thumbnail clicks)
+window.ProductPage = window.ProductPage || {};
+window.ProductPage.showImage = function(imageUrl, thumbnailEl) {
+  var mainImage = document.getElementById('main-product-image');
+  if (mainImage && imageUrl) {
+    mainImage.src = imageUrl;
+    
+    // Update active thumbnail
+    var thumbnails = document.querySelectorAll('.product-thumbnail');
+    thumbnails.forEach(function(thumb) { thumb.classList.remove('active'); });
+    if (thumbnailEl) {
+      thumbnailEl.classList.add('active');
+    }
+  }
+};
