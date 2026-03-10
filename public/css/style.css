@@ -1708,7 +1708,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .store-address,
-.store-schedule {
+.store-schedule,
+.store-phone {
   color: #666;
   font-size: 0.95rem;
   margin-bottom: 0.5rem;
