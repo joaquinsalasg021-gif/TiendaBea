@@ -139,8 +139,8 @@
 <script>
   // Hide scheduled date info (no longer needed)
 
-  // Toggle shipping agency inputs
-  function toggleShippingAgency() {
+  // Toggle shipping agency inputs - global function
+  window.toggleShippingAgency = function() {
     const select = document.getElementById('shipping_agency');
     const otherGroup = document.getElementById('other_agency_group');
     const provinceInput = document.getElementById('province');
