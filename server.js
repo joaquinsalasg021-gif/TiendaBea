@@ -1849,20 +1849,22 @@ async function generateOrderPDF(orderId) {
       doc.moveDown();
 
       let y = doc.y;
-      doc.text('Product', 50, y);
-      doc.text('Qty', 250, y);
-      doc.text('Price', 300, y);
-      doc.text('Subtotal', 400, y);
+      doc.text('ID', 50, y);
+      doc.text('Product', 80, y);
+      doc.text('Qty', 280, y);
+      doc.text('Price', 330, y);
+      doc.text('Subtotal', 430, y);
       doc.moveDown();
       
       // Items
       console.log('Generating PDF - Order items:', items); // Debug log
       items.forEach(item => {
         y = doc.y;
-        doc.text(item.name.substring(0, 30), 50, y);
-        doc.text(item.quantity.toString(), 250, y);
-        doc.text(`S/${item.unit_price.toFixed(2)}`, 300, y);
-        doc.text(`S/${item.subtotal.toFixed(2)}`, 400, y);
+        doc.text(item.product_id.toString(), 50, y);
+        doc.text(item.name.substring(0, 30), 80, y);
+        doc.text(item.quantity.toString(), 280, y);
+        doc.text(`S/${item.unit_price.toFixed(2)}`, 330, y);
+        doc.text(`S/${item.subtotal.toFixed(2)}`, 430, y);
         doc.moveDown();
       });
 
