@@ -131,18 +131,6 @@ async function initDatabase() {
   `);
 
   db.run(`
-    CREATE TABLE IF NOT EXISTS product_images (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      product_id TEXT NOT NULL,
-      image_url TEXT NOT NULL,
-      is_primary INTEGER DEFAULT 0,
-      order_index INTEGER DEFAULT 0,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
-    )
-  `);
-
-  db.run(`
     CREATE TABLE IF NOT EXISTS banners (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       image_url TEXT NOT NULL,
@@ -512,28 +500,6 @@ function createOwner() {
     }
   } catch (e) {
     console.log('Products location stock migration check:', e.message);
-  }
-  
-  // Migrate product_images table - create if not exists
-  try {
-    const imgTableCheck = db.exec("SELECT name FROM sqlite_master WHERE type='table' AND name='product_images'");
-    if (imgTableCheck.length === 0 || imgTableCheck[0].values.length === 0) {
-      console.log('Creating product_images table...');
-      db.run(`
-        CREATE TABLE IF NOT EXISTS product_images (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          product_id TEXT NOT NULL,
-          image_url TEXT NOT NULL,
-          is_primary INTEGER DEFAULT 0,
-          order_index INTEGER DEFAULT 0,
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-          FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
-        )
-      `);
-      saveDatabase();
-    }
-  } catch (e) {
-    console.log('Product_images table migration error:', e.message);
   }
   
   // Save database
