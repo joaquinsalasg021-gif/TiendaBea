@@ -922,9 +922,10 @@ app.post('/api/orders', authMiddleware, async (req, res) => {
 
     console.log('Order request received:', { scheduled_date, scheduled_time, notes, packaging, dni, shipping_agency, province });
 
-    if (!scheduled_date) {
-      return res.status(400).json({ error: 'La fecha programada es requerida' });
-    }
+    // scheduled_date is now optional - orders ship 1-3 business days after payment
+    // if (!scheduled_date) {
+    //   return res.status(400).json({ error: 'La fecha programada es requerida' });
+    // }
 
     if (!dni || !shipping_agency || !province) {
       return res.status(400).json({ error: 'DNI, shipping agency, and province are required' });
