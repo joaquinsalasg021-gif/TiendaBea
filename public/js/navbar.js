@@ -12,7 +12,26 @@ const Navbar = {
     Navbar.initialized = true;
     
     Navbar.render();
+    Navbar.applyDarkMode();
     await Navbar.updateCartBadge();
+  },
+  
+  applyDarkMode: () => {
+    const darkMode = localStorage.getItem('darkMode') === 'true';
+    if (darkMode) {
+      document.body.classList.add('dark-mode');
+    }
+  },
+  
+  toggleDarkMode: () => {
+    const isDark = document.body.classList.toggle('dark-mode');
+    localStorage.setItem('darkMode', isDark);
+    // Update button icon
+    const btn = document.getElementById('dark-mode-toggle');
+    if (btn) {
+      btn.innerHTML = isDark ? '☀️' : '🌙';
+      btn.title = isDark ? 'Modo claro' : 'Modo oscuro';
+    }
   },
   
   render: () => {
@@ -21,6 +40,7 @@ const Navbar = {
     
     const token = localStorage.getItem('token');
     const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const isDarkMode = localStorage.getItem('darkMode') === 'true';
     
     let navLinks = '';
     let authButtons = '';
@@ -62,6 +82,9 @@ const Navbar = {
           <a href="https://www.tiktok.com/@beamayorista.oficial?_r=1&_t=ZS-94Rj9EvGmkX" target="_blank" title="TikTok" class="social-icon">📱</a>
           <a href="https://www.facebook.com/beamayorista.oficial/?locale=es_LA" target="_blank" title="Facebook" class="social-icon">📘</a>
           <a href="https://www.instagram.com/beamayorista/" target="_blank" title="Instagram" class="social-icon">📷</a>
+        </div>
+        <div class="navbar-actions">
+          <button id="dark-mode-toggle" class="dark-mode-toggle" onclick="Navbar.toggleDarkMode()" title="${isDarkMode ? 'Modo claro' : 'Modo oscuro'}">${isDarkMode ? '☀️' : '🌙'}</button>
         </div>
         <div class="navbar-auth" id="nav-auth">
           ${authButtons}

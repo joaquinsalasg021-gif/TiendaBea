@@ -2482,6 +2482,102 @@ h1, h2, h3, h4, h5, h6 {
 
 /* ===== Admin Panel & Cart Enhanced Styles ===== */
 
+/* Dark Mode / Night Mode */
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #1a1a2e;
+    color: #e0e0e0;
+  }
+  
+  body.dark-mode {
+    background-color: #1a1a2e;
+    color: #e0e0e0;
+  }
+  
+  .container {
+    background-color: #1a1a2e;
+  }
+  
+  .product-card {
+    background-color: #16213e;
+    border-color: #0f3460;
+  }
+  
+  .product-name {
+    color: #e0e0e0;
+  }
+  
+  .product-price {
+    color: #a855f7;
+  }
+  
+  .section-title {
+    color: #e0e0e0;
+  }
+  
+  .form-input {
+    background-color: #16213e;
+    border-color: #0f3460;
+    color: #e0e0e0;
+  }
+  
+  .form-input:focus {
+    border-color: #a855f7;
+  }
+  
+  .cart-item {
+    background-color: #16213e;
+    border-color: #0f3460;
+  }
+  
+  .cart-item-name {
+    color: #e0e0e0;
+  }
+  
+  .cart-summary {
+    background-color: #16213e;
+    border-color: #0f3460;
+  }
+  
+  .admin-content {
+    background-color: #16213e;
+    border-color: #0f3460;
+  }
+  
+  .admin-table {
+    background-color: #16213e;
+  }
+  
+  .admin-table th {
+    background-color: #0f3460;
+    color: #e0e0e0;
+  }
+  
+  .admin-table td {
+    color: #e0e0e0;
+    border-color: #0f3460;
+  }
+}
+
+/* Dark Mode Toggle Button */
+.dark-mode-toggle {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dark-mode-toggle:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
 /* Admin Panel Buttons */
 .btn-primary {
   background: linear-gradient(135deg, #581c87 0%, #7c3aed 100%);
