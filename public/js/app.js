@@ -507,7 +507,6 @@ const CartPage = {
           <td>${countdownHtml}</td>
           <td><span class="order-status ${statusClass}">${statusLabel}</span></td>
           <td><button onclick="openWhatsApp('${order.order_code}', '${orderName}', '${orderLastname}', '${orderDate}', '${orderTime}', '${orderPhone}', '${orderDni}', '${orderShipping}', '${orderProvince}', '${orderPackaging}')" class="btn btn-sm btn-success" title="Enviar por WhatsApp">📲 WhatsApp</button></td>
-          <td><a href="/orders.html?id=${order.id}" class="btn btn-sm btn-primary">Ver</a></td>
           <td><button onclick="generateGuide(${order.id})" class="btn btn-sm btn-accent" title="Detalles del Pedido">📄 Guía</button></td>
         </tr>
       `;
@@ -856,7 +855,6 @@ const OrdersPage = {
           <td>${countdownHtml}</td>
           <td><span class="order-status ${statusClass}">${statusLabel}</span></td>
           <td><button onclick="openWhatsApp('${order.order_code}', '${orderName}', '${orderLastname}', '${orderDate}', '${orderTime}', '${orderPhone}', '${orderDni}', '${orderShipping}', '${orderProvince}', '${orderPackaging}')" class="btn btn-sm btn-success" title="Enviar por WhatsApp">📲 WhatsApp</button></td>
-          <td><a href="/orders.html?id=${order.id}" class="btn btn-sm btn-primary">Ver</a></td>
           <td><button onclick="generateGuide(${order.id})" class="btn btn-sm btn-accent" title="Generar Guía">📄 Guía</button></td>
         </tr>
       `;
@@ -1103,7 +1101,6 @@ const AdminPage = {
             </select>
           </td>
           <td>
-            <a href="/orders.html?id=${order.id}" class="btn btn-sm btn-primary">Ver</a>
             <button onclick="AdminPage.generateGuide(${order.id})" class="btn btn-sm btn-primary" title="Detalles del Pedido">📄 Detalles de mi Pedido</button>
           </td>
         </tr>
