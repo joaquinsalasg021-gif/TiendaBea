@@ -108,12 +108,6 @@
   gap: 12px;
 }
 
-.navbar-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
 .navbar-auth .nav-user {
   color: rgba(255, 255, 255, 0.9);
   font-weight: 500;
@@ -156,28 +150,6 @@
 .navbar-auth .btn-sm {
   padding: 6px 14px;
   font-size: 0.85rem;
-}
-
-/* Dark Mode Toggle */
-.dark-mode-toggle {
-  background: rgba(255, 255, 255, 0.15);
-  border: none;
-  color: white;
-  padding: 8px 12px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 1.2rem;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-}
-
-.dark-mode-toggle:hover {
-  background: rgba(255, 255, 255, 0.25);
-  transform: scale(1.1);
 }
 
 /* Mobile Toggle */
