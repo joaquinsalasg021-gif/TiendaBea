@@ -40,8 +40,7 @@ function hashToken(token) {
 // Send email using Nodemailer with Gmail
 async function sendEmail(to, subject, html) {
   if (!process.env.SMTP_PASS) {
-    console.error('SMTP_PASS not configured - email will not be sent');
-    console.log('To enable emails, set SMTP_PASS to your Gmail App Password');
+    console.log('Email not sent - SMTP_PASS not configured (set in environment variables)');
     return { success: false, error: 'SMTP_PASS not configured' };
   }
   
@@ -59,7 +58,7 @@ async function sendEmail(to, subject, html) {
     console.log(`Email sent successfully to: ${to}`);
     return { success: true };
   } catch (error) {
-    console.error('Error sending email:', error.message);
+    console.log('Email error (non-critical):', error.message);
     return { success: false, error: error.message };
   }
 }

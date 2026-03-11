@@ -32,6 +32,11 @@ function hashToken(token) {
 
 // Send verification email
 async function sendVerificationEmail(email, token) {
+  if (!process.env.SMTP_PASS) {
+    console.log('Email not sent - SMTP_PASS not configured');
+    return false;
+  }
+  
   const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
   const verificationUrl = `${baseUrl}/api/auth/verify-email?token=${token}`;
   
@@ -76,7 +81,7 @@ async function sendVerificationEmail(email, token) {
     console.log(`Verification email sent to: ${email}`);
     return true;
   } catch (error) {
-    console.error('Error sending verification email:', error.message);
+    console.log('Email error (non-critical):', error.message);
     return false;
   }
 }
@@ -118,7 +123,7 @@ async function sendWelcomeEmail(email, name) {
     console.log(`Welcome email sent to: ${email}`);
     return true;
   } catch (error) {
-    console.error('Error sending welcome email:', error.message);
+    console.log('Email error (non-critical):', error.message);
     return false;
   }
 }
