@@ -135,6 +135,14 @@ const api = {
       headers
     });
     
+    // Handle 401 Unauthorized - token expired or invalid
+    if (response.status === 401) {
+      console.warn('Token expired or invalid, redirecting to login');
+      Auth.clearAuth();
+      window.location.href = '/login';
+      throw new Error('Session expired. Please login again.');
+    }
+    
     const data = await response.json();
     
     if (!response.ok) {

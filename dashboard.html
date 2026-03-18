@@ -445,7 +445,7 @@
         const response = await fetch('/api/dashboard/inventory', authHeaders());
         if (!response.ok) {
           if (response.status === 401) {
-            showNotification('Sesión expirada. Por favor, inicia sesión nuevamente.', 'error');
+            handleAuthError();
             return;
           }
           const err = await response.json();
@@ -472,7 +472,7 @@
         const response = await fetch(`/api/dashboard/sales?month=${month}&year=${year}`, authHeaders());
         if (!response.ok) {
           if (response.status === 401) {
-            showNotification('Sesión expirada. Por favor, inicia sesión nuevamente.', 'error');
+            handleAuthError();
             return;
           }
           const err = await response.json();
@@ -497,7 +497,7 @@
         const response = await fetch('/api/dashboard/movements?limit=50', authHeaders());
         if (!response.ok) {
           if (response.status === 401) {
-            showNotification('Sesión expirada. Por favor, inicia sesión nuevamente.', 'error');
+            handleAuthError();
             return;
           }
           const err = await response.json();
@@ -519,7 +519,7 @@
         const response = await fetch('/api/dashboard/products', authHeaders());
         if (!response.ok) {
           if (response.status === 401) {
-            showNotification('Sesión expirada. Por favor, inicia sesión nuevamente.', 'error');
+            handleAuthError();
             return;
           }
           const err = await response.json();
@@ -889,6 +889,13 @@
       const token = localStorage.getItem('token');
       console.log('Auth - Token:', token ? 'exists' : 'null');
       return token ? { 'Authorization': `Bearer ${token}` } : {};
+    }
+
+    // Handle 401 errors - redirect to login
+    function handleAuthError() {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/login';
     }
 
     // Notification

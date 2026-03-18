@@ -146,6 +146,13 @@
               return t ? {Authorization: 'Bearer ' + t} : {};
             }
 
+            // Handle 401 errors - redirect to login
+            function handleAuthError() {
+              localStorage.removeItem('token');
+              localStorage.removeItem('user');
+              window.location.href = '/login';
+            }
+
             // Init
             (function init() {
               loadInv();
@@ -163,7 +170,10 @@
             async function loadInv() {
               try {
                 const r = await fetch(API+'/dashboard/inventory', {headers: auth()});
-                if(!r.ok) { console.error('Inventory load failed'); return; }
+                if(!r.ok) { 
+                  if(r.status === 401) { handleAuthError(); return; }
+                  console.error('Inventory load failed'); return; 
+                }
                 const d = await r.json();
                 renderKPIs(d.totals);
                 renderInvTable(d.products);
@@ -199,7 +209,10 @@
             async function loadTransProducts() {
               try {
                 const r = await fetch(API+'/dashboard/products', {headers: auth()});
-                if(!r.ok) return;
+                if(!r.ok) { 
+                  if(r.status === 401) { handleAuthError(); return; }
+                  return;
+                }
                 const d = await r.json();
                 const s = document.getElementById('transfer-product');
                 s.innerHTML = '<option value="">Seleccionar producto...</option>' + d.map(p => `<option value="${p.id}">${p.name} (Stock: ${p.stock})</option>`).join('');
@@ -222,7 +235,10 @@
                   headers: {...auth(), 'Content-Type': 'application/json'},
                   body: JSON.stringify({product_id: pid, quantity: qty, origin: ori, destination: dest})
                 });
-                if(!r.ok) { const e = await r.json(); return alert(e.error || 'Error'); }
+                if(!r.ok) { 
+                  if(r.status === 401) { handleAuthError(); return; }
+                  const e = await r.json(); return alert(e.error || 'Error'); 
+                }
                 alert('✓ Transferencia exitosa');
                 document.getElementById('transfer-qty').value = '';
                 loadInv();
